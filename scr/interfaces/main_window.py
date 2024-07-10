@@ -79,8 +79,8 @@ class MainWindow:
         boton_fin.pack(side=tk.LEFT,padx=5)
 
 
-        exel_button = tk.Button(search_frame, text="Exel")
-        exel_button.pack(side=tk.LEFT, padx=5)
+        search_button = tk.Button(search_frame, text="Buscar regsitro")
+        search_button.pack(side=tk.LEFT, padx=5)
 
 
 
