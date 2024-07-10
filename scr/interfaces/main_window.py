@@ -66,6 +66,13 @@ class MainWindow:
     def agregar_barra_reportes(self):
         search_frame = tk.Frame(self.master)
         search_frame.pack(pady=10)
+
+        boton_reportes= tk.Button(search_frame,text="Fecha inicio")
+        boton_reportes.pack(side=tk.LEFT,padx=5)
+
+        boton_reportes= tk.Button(search_frame,text="Fecha fin")
+        boton_reportes.pack(side=tk.LEFT,padx=5)
+
         boton_reportes= tk.Button(search_frame,text="Reprotes")
         boton_reportes.pack(side=tk.LEFT,padx=5)
 
