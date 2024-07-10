@@ -154,7 +154,7 @@ class RegistrarAsistencia:
 
 
             if nombre and apellido_pat and dni and apellido_mat:
-                if lista_personas.insertar_personas(nombre, apellido_pat, dni, apellido_mat):
+                if lista_personas.insertar_personas(nombre, apellido_pat, apellido_mat, dni):
                     self.info_usuario.config(text="Persona agregada exitosamente", bg="green")
                     #self.play_sound()
                     # Cierra la ventana emergente
