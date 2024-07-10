@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import Tk, Menu
 from tkcalendar import DateEntry  # Importación correcta de DateEntry
 from tkinter import messagebox ,ttk,Menu
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from scr.modulos import asistencia
 
 class MainWindow:
@@ -62,6 +64,7 @@ class MainWindow:
         self.limpiar_pantalla()
         self.agregar_barra_seleccion_fechas()
         self.crear_area_resultado_registro_SEMA()
+        self.agregar_boton_exportar()
 
     def limpiar_pantalla(self):
         for widget in self.master.winfo_children():
@@ -87,7 +90,7 @@ class MainWindow:
         search_button.pack(side=tk.LEFT, padx=5)
 
 
-#OJO ESTA FUNCION SEMANAL NO ESTA UTILIZANDO 
+#OJO ESTA FUNCION SEMANAL NO ESTA UTILIZANDO  en semanla 
     def crear_area_resultado_registro(self):
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
@@ -151,7 +154,7 @@ class MainWindow:
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
 
-        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Fecha', 'Hora de entrada'), show='headings', height=50)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Fecha', 'Hora de entrada'), show='headings', height=20)
         self.tree.heading('ID', text='ID')
         self.tree.heading('Nombres', text='Nombres')
         self.tree.heading('Fecha', text='Fecha')
@@ -163,3 +166,50 @@ class MainWindow:
         self.tree.column('Nombres', width=180, anchor=tk.CENTER)
         self.tree.column('Fecha', width=180, anchor=tk.CENTER)
         self.tree.column('Hora de entrada', width=180, anchor=tk.CENTER)
+
+
+    # funcion para exportar en pdf los datos por semana 
+    def agregar_boton_exportar(self):
+        exportar_frame = tk.Frame(self.master)
+        exportar_frame.pack(pady=10)
+        boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf)
+        boton_exportar.pack()
+
+    def exportar_a_pdf(self):
+        fecha_inicio = self.fecha_inicio_entry.get()
+        fecha_fin = self.fecha_fin_entry.get()
+        resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        
+        if not resultados:
+            messagebox.showerror("Error", "No hay datos para exportar en las fechas seleccionadas.")
+            return
+
+        pdf_filename = f"Asistencia_{fecha_inicio}_a_{fecha_fin}.pdf"
+        c = canvas.Canvas(pdf_filename, pagesize=letter)
+        width, height = letter
+        y = height - 40
+        
+        c.setFont("Helvetica", 14)
+        c.drawString(30, y, f"Reporte de Asistencia del {fecha_inicio} al {fecha_fin}")
+        y -= 20
+        
+        c.setFont("Helvetica", 12)
+        c.drawString(30, y, "ID")
+        c.drawString(100, y, "Nombres")
+        c.drawString(300, y, "Fecha")
+        c.drawString(400, y, "Hora de entrada")
+        y -= 20
+        
+        for resultado in resultados:
+            c.drawString(30, y, str(resultado[0]))
+            c.drawString(100, y, resultado[1])
+            c.drawString(300, y, resultado[2])
+            c.drawString(400, y, resultado[3])
+            y -= 20
+            if y < 40:  # Salto de página si el contenido supera una página
+                c.showPage()
+                y = height - 40
+                c.setFont("Helvetica", 12)
+        
+        c.save()
+        messagebox.showinfo("Exportar", f"El reporte se ha exportado como {pdf_filename}")
