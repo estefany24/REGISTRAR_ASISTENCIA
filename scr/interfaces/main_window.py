@@ -63,9 +63,14 @@ class MainWindow:
         for widget in self.master.winfo_children():
             widget.pack_forget()
         # Aquí puedes agregar el código para las funcionalidades de tu aplicación
+
+
     def agregar_barra_reportes(self):
         search_frame = tk.Frame(self.master)
         search_frame.pack(pady=10)
+
+        boton_reportes= tk.Button(search_frame,text="Reprote de hoy")
+        boton_reportes.pack(side=tk.LEFT,padx=5)
 
         boton_inicio= tk.Button(search_frame,text="Fecha inicio")
         boton_inicio.pack(side=tk.LEFT,padx=5)
@@ -73,16 +78,9 @@ class MainWindow:
         boton_fin= tk.Button(search_frame,text="Fecha fin")
         boton_fin.pack(side=tk.LEFT,padx=5)
 
-        boton_reportes= tk.Button(search_frame,text="Reprotes")
-        boton_reportes.pack(side=tk.LEFT,padx=5)
 
-        tk.Label(search_frame, text="Fecha: ").pack(side=tk.LEFT, padx=5)
-        
-        self.fecha_entry = tk.Entry(search_frame, width=40)
-        self.fecha_entry.pack(side=tk.LEFT, padx=5)
-
-        search_button = tk.Button(search_frame, text="Buscar regsitro")
-        search_button.pack(side=tk.LEFT, padx=5)
+        exel_button = tk.Button(search_frame, text="Exel")
+        exel_button.pack(side=tk.LEFT, padx=5)
 
 
 
