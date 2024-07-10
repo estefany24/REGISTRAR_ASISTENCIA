@@ -67,11 +67,11 @@ class MainWindow:
         search_frame = tk.Frame(self.master)
         search_frame.pack(pady=10)
 
-        boton_reportes= tk.Button(search_frame,text="Fecha inicio")
-        boton_reportes.pack(side=tk.LEFT,padx=5)
+        boton_inicio= tk.Button(search_frame,text="Fecha inicio")
+        boton_inicio.pack(side=tk.LEFT,padx=5)
 
-        boton_reportes= tk.Button(search_frame,text="Fecha fin")
-        boton_reportes.pack(side=tk.LEFT,padx=5)
+        boton_fin= tk.Button(search_frame,text="Fecha fin")
+        boton_fin.pack(side=tk.LEFT,padx=5)
 
         boton_reportes= tk.Button(search_frame,text="Reprotes")
         boton_reportes.pack(side=tk.LEFT,padx=5)
