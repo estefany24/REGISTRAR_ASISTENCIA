@@ -5,6 +5,7 @@ from tkinter import messagebox ,ttk,Menu
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from scr.modulos import asistencia
+from datetime import datetime, timedelta
 
 class MainWindow:
     def __init__(self, master):
@@ -127,15 +128,29 @@ class MainWindow:
         tk.Label(fechas_frame, text="Fecha inicio:").pack(side=tk.LEFT, padx=5)
         self.fecha_inicio_entry = DateEntry(fechas_frame, date_pattern='yyyy-mm-dd')
         self.fecha_inicio_entry.pack(side=tk.LEFT, padx=5)
+        self.fecha_inicio_entry.bind("<<DateEntrySelected>>", self.actualizar_fecha_inicio_y_fin)
 
         tk.Label(fechas_frame, text="Fecha fin:").pack(side=tk.LEFT, padx=5)
         self.fecha_fin_entry = DateEntry(fechas_frame, date_pattern='yyyy-mm-dd')
         self.fecha_fin_entry.pack(side=tk.LEFT, padx=5)
+        self.fecha_fin_entry.config(state='readonly')
 
         boton_generar_reporte = tk.Button(fechas_frame, text="Generar reporte", command=self.mostrar_datos_semanales)
         boton_generar_reporte.pack(side=tk.LEFT, padx=5)
 
 
+    def actualizar_fecha_inicio_y_fin(self, event):
+        fecha_inicio_str = self.fecha_inicio_entry.get()
+        fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d')
+        
+        # Ajustar la fecha de inicio al primer día de la semana (lunes)
+        while fecha_inicio.weekday() != 0:  # 0 es lunes
+            fecha_inicio -= timedelta(days=1)
+        
+        fecha_fin = fecha_inicio + timedelta(days=6)
+        
+        self.fecha_inicio_entry.set_date(fecha_inicio)
+        self.fecha_fin_entry.set_date(fecha_fin)
 
     def mostrar_datos_semanales(self):
         fecha_inicio = self.fecha_inicio_entry.get()
