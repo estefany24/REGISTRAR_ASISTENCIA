@@ -393,7 +393,7 @@ class MainWindow:
         
         fecha_inicio = self.fecha_inicio_entry.get()
         fecha_fin = self.fecha_fin_entry.get()
-        resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        resultados = asistencia.obtener_grafico_por_fecha(fecha_inicio, fecha_fin)
         
         if not resultados:
             messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
@@ -454,7 +454,7 @@ class MainWindow:
             fecha_fin = f"{anio}-{mes:02d}-{calendar.monthrange(anio, mes)[1]:02d}"
        
             
-            resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+            resultados = asistencia.obtener_grafico_por_fecha(fecha_inicio, fecha_fin)
             
             if not resultados:
                 messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
