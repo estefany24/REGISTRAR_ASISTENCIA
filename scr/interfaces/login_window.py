@@ -23,6 +23,12 @@ class LoginWindow:
         # Botón de Continuar como Usuario
         tk.Button(self.master, text="Continuar como Usuario", command=self.continuar_como_usuario).grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
+        self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def on_closing(self):
+        if messagebox.askokcancel("Salir", "¿Realmente desea cerrar la aplicación?"):
+            self.master.destroy()
+
     def iniciar_sesion(self):
         usuario = self.entry_usuario.get()
         contrasena = self.entry_contrasena.get()
