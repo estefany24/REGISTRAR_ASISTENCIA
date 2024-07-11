@@ -62,6 +62,10 @@ def obtener_asistencia():
         conn.close()
 
 
+<<<<<<< HEAD
+=======
+#FUNCION AGREGADAA1
+>>>>>>> 6ae52fe3f7c817e5fa033c0f542da4470b174d6a
 def obtener_asistencia_por_fecha(fecha_inicio, fecha_fin):
     conn = conectar_bd()
     if not conn:
