@@ -3,7 +3,7 @@ import winsound
 from scr.modulos import lista_personas
 from scr.modulos import asistencia
 from datetime import datetime
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from modelos import api_conculta
 from PIL import Image, ImageTk
 import os
@@ -14,7 +14,7 @@ class RegistrarAsistencia:
         self.master.title("Registrar Asistencia")
         self.master.geometry("400x400")
         self.master.configure(bg="#282c34") 
-        #self.master.resizable(False, False)
+        self.master.resizable(False, False)
         self.ventana_agregar_abierta = False
         self.iniciar()
         
@@ -27,28 +27,27 @@ class RegistrarAsistencia:
 
         self.logo_img = Image.open(logo_path)
         self.logo_img = self.logo_img.resize((100,100), Image.LANCZOS)
-        self.logo_photo = ImageTk.PhotoImage(self.logo_img)
+        self.logo = ImageTk.PhotoImage(self.logo_img)
 
         # Etiqueta con el logo
-        self.logo_label = tk.Label(self.master, image=self.logo_photo, bg="#282c34")
-        self.logo_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        tk.Label(self.master, image=self.logo, bg="#282c34").grid(row=0, column=0, columnspan=2, pady=20)
 
         # Título al lado del logo
-        tk.Label(self.master, text="Asistencia", font=("Arial", 20, "bold"), bg="#282c34", fg="#ffffff").grid(row=0, column=1, padx=10, pady=10, sticky='w')
+        tk.Label(self.master, text="Asistencia", font=("Arial", 20, "bold"), bg="#282c34", fg="#61dafb").grid(row=1, column=0, columnspan=2, pady=10)
 
 
         # Etiqueta DNI
-        tk.Label(self.master, text="DNI:", font=("Arial", 14, "bold"), bg="#282c34", fg="#ffffff").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        tk.Label(self.master, text="DNI:", font=("Arial", 14, "bold"), bg="#282c34", fg="#ffffff").grid(row=2, column=0, padx=10, pady=10, sticky='e')
 
         # Entrada DNI
         self.entry_dni = tk.Entry(self.master, font=("Arial", 14), bd=2, relief="solid")  # Añadido borde y mejorado el estilo
-        self.entry_dni.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+        self.entry_dni.grid(row=2, column=1, padx=10, pady=10, sticky='w')
         self.entry_dni.bind('<Return>', self.mostrar_informacion)
         self.entry_dni.focus_set()
 
         # Etiqueta para mostrar información del usuario
         self.info_usuario = tk.Label(self.master, text="", font=("Arial", 12), bg="#282c34", fg="#ffffff")  # Cambiado el color del texto y la fuente
-        self.info_usuario.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky='w')
+        self.info_usuario.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky='w')
 
         # Botón de Registrar Asistencia
         self.btn_registrar = tk.Button(self.master, text="Registrar Asistencia", command=self.registrar_asistencia, state=tk.DISABLED,
@@ -61,7 +60,7 @@ class RegistrarAsistencia:
                                       )
         self.btn_registrar.bind("<Enter>", lambda e: self.change_button_color(self.btn_registrar, "#45a049"))
         self.btn_registrar.bind("<Leave>", lambda e: self.change_button_color(self.btn_registrar, "#4CAF50"))
-        self.btn_registrar.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        self.btn_registrar.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
 
         # Botón de Salir
         tk.Button(self.master, text="Salir", command=self.logout, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
@@ -70,7 +69,7 @@ class RegistrarAsistencia:
                   highlightthickness=0,  # Eliminar el borde del foco
                   activebackground="#e53935",  # Color de fondo cuando se presiona
                   activeforeground="#ffffff",  # Color del texto cuando se presiona
-                  ).grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+                  ).grid(row=5, column=0, columnspan=2, padx=10, pady=10)
 
         # Centrar todo
         for i in range(5):
@@ -118,7 +117,14 @@ class RegistrarAsistencia:
                     # Solo vincular el evento '<Return>' para llamar a `registrar_asistencia` una vez
                     self.master.bind('<Return>', self.registrar_asistencia)
                 else:
-                    self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat", bg="red")
+                    self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat",
+                        anchor="center",
+                        bg="#282c34",  # Fondo del marco
+                        fg="white",  # Color del texto
+                         
+                         # Centrar el texto
+                      # Borde sólido para la etiqueta
+                    )
                     self.master.after(2000, self.limpiar_informacion)
 
             else:
@@ -139,7 +145,14 @@ class RegistrarAsistencia:
                     apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
 
                     if nombre and apellido_pat:
-                        self.info_usuario.config(text=f"Nombre: {nombres} {apellido_paterno}", bg="yellow")
+                        self.info_usuario.config(text=f"          Nombre: {nombre} {apellido_pat}",
+                        anchor="center",
+                        bg="#282c34",  # Fondo del marco
+                        fg="white",  # Color del texto
+                         
+                         # Centrar el texto
+                      # Borde sólido para la etiqueta
+                        )
                         self.btn_registrar.config(state=tk.NORMAL)
                         # Desvincular el evento '<Return>' para evitar que se llame a `registrar_asistencia` más de una vez
                         self.master.unbind('<Return>')
