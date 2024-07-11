@@ -73,7 +73,7 @@ class MainWindow:
         self.agregar_barra_seleccion_mes()
         self.crear_area_resultado_registro()
         self.agregar_boton_exportarMEN()
-        self.agregar_boton_grafico()
+        self.agregar_boton_graficoMEN()
 
     def mostrar_reporte_semanal(self):
         self.limpiar_pantalla()
@@ -161,7 +161,7 @@ class MainWindow:
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
 
-        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada'), show='headings', height=20)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada'), show='headings', height=15)
         self.tree.heading('ID', text='ID')
         self.tree.heading('Nombres', text='Nombres')
         self.tree.heading('Apellido Pat', text='Apell. Paterno')
@@ -382,6 +382,11 @@ class MainWindow:
             grafico_frame.pack(pady=10)
             boton_grafico = tk.Button(grafico_frame, text="Ver gráfico", command=self.mostrar_grafico_semanal)
             boton_grafico.pack(side=tk.LEFT, padx=5)
+    def agregar_boton_graficoMEN(self):
+            grafico_frame = tk.Frame(self.master)
+            grafico_frame.pack(pady=10)
+            boton_grafico = tk.Button(grafico_frame, text="Ver gráfico", command=self.mostrar_grafico_mensual)
+            boton_grafico.pack(side=tk.LEFT, padx=5)
 
     def mostrar_grafico_semanal(self):
         from collections import Counter
@@ -426,38 +431,70 @@ class MainWindow:
 
 
     def mostrar_grafico_mensual(self):
-        mes = self.mes_entry.get()
-        anio = self.anio_entry.get()
-        
-        if not mes or not anio:
-            messagebox.showerror("Error", "Debe seleccionar el mes y el año.")
-            return
-        
-        fecha_inicio = f"{anio}-{mes}-01"
-        fecha_fin = f"{anio}-{mes}-{calendar.monthrange(int(anio), int(mes))[1]}"
-        
-        conteo_asistencia = asistencia.obtener_conteo_asistencia_por_fecha(fecha_inicio, fecha_fin)
-        
-        if not conteo_asistencia:
-            messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
-            return
-        
-        fechas = [resultado[0] for resultado in conteo_asistencia]
-        cantidades = [resultado[1] for resultado in conteo_asistencia]
-        
-        fig, ax = plt.subplots()
-        ax.bar(fechas, cantidades, color='blue')
-        ax.set_xlabel('Fecha')
-        ax.set_ylabel('Cantidad de personas')
-        ax.set_title('Asistencia Mensual')
-        ax.grid(True)
+        try:
+            from collections import Counter
+            
+            mes = int(self.mes_entry.get())
+            anio = int(self.anio_entry.get())
+            
+            if not mes or not anio:
+                messagebox.showerror("Error", "Debe seleccionar el mes y el año.")
+                return
+            
+            # Validar mes y año
+            if mes < 1 or mes > 12:
+                messagebox.showerror("Error", "El mes debe estar entre 1 y 12.")
+                return
+            if anio < 1900 or anio > 2100:
+                messagebox.showerror("Error", "El año debe estar entre 1900 y 2100.")
+                return
 
-        # Crear una nueva ventana para el gráfico
-        ventana_grafico = Toplevel(self.master)
-        ventana_grafico.title("Gráfico de Asistencia Mensual")
-        ventana_grafico.geometry("800x600")
+            # Formatear correctamente la fecha
+            fecha_inicio = f"{anio}-{mes:02d}-01"
+            fecha_fin = f"{anio}-{mes:02d}-{calendar.monthrange(anio, mes)[1]:02d}"
+       
+            
+            resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+            
+            if not resultados:
+                messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
+                return
+            
+            
+            
+            # Crear una lista de todas las fechas en el rango seleccionado
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            todas_fechas = [(fecha_inicio_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range((fecha_fin_dt - fecha_inicio_dt).days + 1)]
+            
+            # Contar la asistencia por día
+            fechas = [resultado[2] for resultado in resultados]
+            conteo_fechas = Counter(fechas)
+            
+           
+            
+            conteos = [conteo_fechas.get(fecha, 0) for fecha in todas_fechas]
+            
+      
+            
+            fig, ax = plt.subplots()
+            ax.bar(todas_fechas, conteos, color='blue')
+            ax.set_xlabel('Fecha')
+            ax.set_ylabel('Número de asistentes')
+            ax.set_title('Asistencia Mensual')
+            ax.grid(True)
+            ax.set_xticks(todas_fechas)  # Asegurar que todas las fechas estén en el eje x
+            ax.set_xticklabels(todas_fechas, rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
 
-        # Insertar el gráfico en la nueva ventana
-        canvas = FigureCanvasTkAgg(fig, master=ventana_grafico)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            # Crear una nueva ventana para el gráfico
+            ventana_grafico = Toplevel(self.master)
+            ventana_grafico.title("Gráfico de Asistencia Mensual")
+            ventana_grafico.geometry("800x600")
+
+            # Insertar el gráfico en la nueva ventana
+            canvas = FigureCanvasTkAgg(fig, master=ventana_grafico)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Se produjo un error: {e}")

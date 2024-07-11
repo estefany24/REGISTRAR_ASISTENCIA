@@ -14,19 +14,19 @@ class RegistrarAsistencia:
         self.master.title("Registrar Asistencia")
         self.master.geometry("400x400")
         self.master.configure(bg="#282c34") 
-        self.master.resizable(False, False)
+        #self.master.resizable(False, False)
         self.ventana_agregar_abierta = False
         self.iniciar()
         
 
     def iniciar(self):
-        logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'logo_UNAP.png')
+        logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'humano.png')
         if not os.path.exists(logo_path):
             messagebox.showerror("Error", f"No se encontró el logo en {logo_path}")
             return
 
         self.logo_img = Image.open(logo_path)
-        self.logo_img = self.logo_img.resize((50, 50), Image.LANCZOS)
+        self.logo_img = self.logo_img.resize((100,100), Image.LANCZOS)
         self.logo_photo = ImageTk.PhotoImage(self.logo_img)
 
         # Etiqueta con el logo
