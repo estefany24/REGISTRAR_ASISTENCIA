@@ -301,6 +301,8 @@ class MainWindow:
             boton_grafico.pack(side=tk.LEFT, padx=5)
 
     def mostrar_grafico_semanal(self):
+        from collections import Counter
+        
         fecha_inicio = self.fecha_inicio_entry.get()
         fecha_fin = self.fecha_fin_entry.get()
         resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
@@ -309,18 +311,25 @@ class MainWindow:
             messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
             return
         
+        # Crear una lista de todas las fechas en el rango seleccionado
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+        fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+        todas_fechas = [(fecha_inicio_dt + timedelta(days=i)).strftime('%Y-%m-%d') for i in range((fecha_fin_dt - fecha_inicio_dt).days + 1)]
+
         # Contar la asistencia por día
         fechas = [resultado[2] for resultado in resultados]
         conteo_fechas = Counter(fechas)
-        fechas_unicas = sorted(conteo_fechas.keys())
-        conteos = [conteo_fechas[fecha] for fecha in fechas_unicas]
+        
+        conteos = [conteo_fechas.get(fecha, 0) for fecha in todas_fechas]
         
         fig, ax = plt.subplots()
-        ax.bar(fechas_unicas, conteos, color='blue')
+        ax.bar(todas_fechas, conteos, color='blue')
         ax.set_xlabel('Fecha')
         ax.set_ylabel('Número de asistentes')
         ax.set_title('Asistencia Semanal')
         ax.grid(True)
+        ax.set_xticks(todas_fechas)  # Asegurar que todas las fechas estén en el eje x
+        ax.set_xticklabels(todas_fechas, rotation=45, ha='right')  # Rotar etiquetas para mejor visualización
 
         # Crear una nueva ventana para el gráfico
         ventana_grafico = Toplevel(self.master)
