@@ -61,8 +61,28 @@ def obtener_asistencia():
     finally:
         conn.close()
 
-
+# funcion para obtener los dtos de el registro por intervalo de fecha 
 def obtener_asistencia_por_fecha(fecha_inicio, fecha_fin):
+    conn = conectar_bd()
+    if not conn:
+        return []
+    try:
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT asistencia.id, lista_persona.nombres, lista_persona.apellido_pat, lista_persona.apellido_mat, lista_persona.dni, asistencia.hora_entrada, asistencia.fecha
+        FROM asistencia
+        INNER JOIN lista_persona ON asistencia.lista_id=lista_persona.ID
+        WHERE asistencia.fecha BETWEEN ? AND ?
+        ''', (fecha_inicio, fecha_fin))
+        asistencias = cursor.fetchall()
+        return asistencias
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", f"Error al obtener la asistencia por fecha: {e}")
+        return []
+    finally:
+        conn.close()
+
+def obtener_grafico_por_fecha(fecha_inicio, fecha_fin):
     conn = conectar_bd()
     if not conn:
         return []
