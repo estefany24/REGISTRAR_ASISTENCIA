@@ -81,3 +81,37 @@ def obtener_asistencia_por_fecha(fecha_inicio, fecha_fin):
         return []
     finally:
         conn.close()
+
+
+'''
+
+def mostrar_grafico_semanal(self):
+    fecha_inicio = self.fecha_inicio_entry.get()
+    fecha_fin = self.fecha_fin_entry.get()
+    
+    resultados_asistencia = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+    
+    if not resultados_asistencia:
+        messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
+        return
+    
+    fechas = [resultado[2] for resultado in resultados_asistencia]
+    cantidades = [1 for _ in resultados_asistencia]  # Se podría contar cuántas personas asistieron por fecha
+
+    fig, ax = plt.subplots()
+    ax.bar(fechas, cantidades, color='blue')
+    ax.set_xlabel('Fecha')
+    ax.set_ylabel('Cantidad de personas')
+    ax.set_title('Asistencia Semanal')
+    ax.grid(True)
+
+    # Crear una nueva ventana para el gráfico
+    ventana_grafico = Toplevel(self.master)
+    ventana_grafico.title("Gráfico de Asistencia Semanal")
+    ventana_grafico.geometry("800x600")
+
+    # Insertar el gráfico en la nueva ventana
+    canvas = FigureCanvasTkAgg(fig, master=ventana_grafico)
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+'''

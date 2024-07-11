@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Tk, Menu
+from tkinter import Tk, Menu, Toplevel
 from tkinter import messagebox ,ttk,Menu
 from scr.modulos import asistencia
 from scr.modulos import reportes
@@ -8,7 +8,10 @@ from datetime import datetime
 import datetime
 from tkcalendar import DateEntry 
 from datetime import datetime, timedelta
-
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
+from collections import Counter
 
 class MainWindow:
     def __init__(self, master):
@@ -69,6 +72,8 @@ class MainWindow:
         self.agregar_barra_seleccion_fechas()
         self.crear_area_resultado_registro_SEMA()
         self.agregar_boton_exportar()
+        self.agregar_boton_grafico()
+        
 
     def agregar_boton_exportar(self):
         exportar_frame = tk.Frame(self.master)
@@ -287,3 +292,42 @@ class MainWindow:
         self.tree.column('Nombres', width=180, anchor=tk.CENTER)
         self.tree.column('Fecha', width=180, anchor=tk.CENTER)
         self.tree.column('Hora de entrada', width=180, anchor=tk.CENTER)
+
+
+    def agregar_boton_grafico(self):
+            grafico_frame = tk.Frame(self.master)
+            grafico_frame.pack(pady=10)
+            boton_grafico = tk.Button(grafico_frame, text="Ver gráfico", command=self.mostrar_grafico_semanal)
+            boton_grafico.pack(side=tk.LEFT, padx=5)
+
+    def mostrar_grafico_semanal(self):
+        fecha_inicio = self.fecha_inicio_entry.get()
+        fecha_fin = self.fecha_fin_entry.get()
+        resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        
+        if not resultados:
+            messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
+            return
+        
+        # Contar la asistencia por día
+        fechas = [resultado[2] for resultado in resultados]
+        conteo_fechas = Counter(fechas)
+        fechas_unicas = sorted(conteo_fechas.keys())
+        conteos = [conteo_fechas[fecha] for fecha in fechas_unicas]
+        
+        fig, ax = plt.subplots()
+        ax.bar(fechas_unicas, conteos, color='blue')
+        ax.set_xlabel('Fecha')
+        ax.set_ylabel('Número de asistentes')
+        ax.set_title('Asistencia Semanal')
+        ax.grid(True)
+
+        # Crear una nueva ventana para el gráfico
+        ventana_grafico = Toplevel(self.master)
+        ventana_grafico.title("Gráfico de Asistencia Semanal")
+        ventana_grafico.geometry("800x600")
+
+        # Insertar el gráfico en la nueva ventana
+        canvas = FigureCanvasTkAgg(fig, master=ventana_grafico)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
