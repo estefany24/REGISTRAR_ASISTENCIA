@@ -5,25 +5,78 @@ from scr.modulos import asistencia
 from datetime import datetime
 from tkinter import messagebox
 from modelos import api_conculta
+from PIL import Image, ImageTk
+import os
+
 class RegistrarAsistencia:
     def __init__(self, master):
         self.master = master
         self.master.title("Registrar Asistencia")
+        self.master.geometry("400x250")
+        self.master.configure(bg="#282c34") 
         self.iniciar()
 
     def iniciar(self):
-        tk.Label(self.master, text="DNI:").grid(row=0, column=0, padx=10, pady=10)
-        self.entry_dni = tk.Entry(self.master)
-        self.entry_dni.grid(row=0, column=1, padx=10, pady=10)
+        logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'logo_UNAP.png')
+        if not os.path.exists(logo_path):
+            messagebox.showerror("Error", f"No se encontró el logo en {logo_path}")
+            return
+
+        self.logo_img = Image.open(logo_path)
+        self.logo_img = self.logo_img.resize((50, 50), Image.LANCZOS)
+        self.logo_photo = ImageTk.PhotoImage(self.logo_img)
+
+        # Etiqueta con el logo
+        self.logo_label = tk.Label(self.master, image=self.logo_photo, bg="#282c34")
+        self.logo_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+
+        # Título al lado del logo
+        tk.Label(self.master, text="Asistencia", font=("Arial", 20, "bold"), bg="#282c34", fg="#ffffff").grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+
+        # Etiqueta DNI
+        tk.Label(self.master, text="DNI:", font=("Arial", 14, "bold"), bg="#282c34", fg="#ffffff").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+
+        # Entrada DNI
+        self.entry_dni = tk.Entry(self.master, font=("Arial", 14), bd=2, relief="solid")  # Añadido borde y mejorado el estilo
+        self.entry_dni.grid(row=1, column=1, padx=10, pady=10, sticky='w')
         self.entry_dni.bind('<Return>', self.mostrar_informacion)
 
-        self.info_usuario = tk.Label(self.master, text="", fg="black")
-        self.info_usuario.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        # Etiqueta para mostrar información del usuario
+        self.info_usuario = tk.Label(self.master, text="", font=("Arial", 12), bg="#282c34", fg="#ffffff")  # Cambiado el color del texto y la fuente
+        self.info_usuario.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky='w')
 
-        self.btn_registrar = tk.Button(self.master, text="Registrar Asistencia", command=self.registrar_asistencia, state=tk.DISABLED)
-        self.btn_registrar.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        # Botón de Registrar Asistencia
+        self.btn_registrar = tk.Button(self.master, text="Registrar Asistencia", command=self.registrar_asistencia, state=tk.DISABLED,
+                                      bg="#4CAF50", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                                      padx=20, pady=10,  # Tamaño del botón
+                                      borderwidth=0,  # Eliminar el borde del botón
+                                      highlightthickness=0,  # Eliminar el borde del foco
+                                      activebackground="#45a049",  # Color de fondo cuando se presiona
+                                      activeforeground="#ffffff",  # Color del texto cuando se presiona
+                                      )
+        self.btn_registrar.bind("<Enter>", lambda e: self.change_button_color(self.btn_registrar, "#45a049"))
+        self.btn_registrar.bind("<Leave>", lambda e: self.change_button_color(self.btn_registrar, "#4CAF50"))
+        self.btn_registrar.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
-        tk.Button(self.master, text="Salir", command=self.logout).grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        # Botón de Salir
+        tk.Button(self.master, text="Salir", command=self.logout, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=20, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  ).grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+
+        # Centrar todo
+        for i in range(5):
+            self.master.grid_rowconfigure(i, weight=1)
+        for i in range(2):
+            self.master.grid_columnconfigure(i, weight=1)
+
+    def change_button_color(self, button, color):
+        button.config(bg=color)
+
 
     def logout(self):
         self.master.destroy()
