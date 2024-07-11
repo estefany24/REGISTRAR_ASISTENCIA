@@ -14,6 +14,7 @@ class RegistrarAsistencia:
         self.master.title("Registrar Asistencia")
         self.master.geometry("400x400")
         self.master.configure(bg="#282c34") 
+        self.master.resizable(False, False)
         self.ventana_agregar_abierta = False
         self.iniciar()
         
@@ -101,7 +102,16 @@ class RegistrarAsistencia:
                 apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
 
                 if nombre and apellido_pat:
-                    self.info_usuario.config(text=f"Nombre: {nombre} {apellido_pat}", bg="yellow")
+                    self.info_usuario.config(
+                        text=f"          Nombre: {nombre} {apellido_pat}",
+                        anchor="center",
+                        bg="#282c34",  # Fondo del marco
+                        fg="white",  # Color del texto
+                         
+                         # Centrar el texto
+                      # Borde sólido para la etiqueta
+                    )
+
                     self.btn_registrar.config(state=tk.NORMAL)
                     # Desvincular el evento '<Return>' para evitar que se llame a `registrar_asistencia` más de una vez
                     self.master.unbind('<Return>')
@@ -185,35 +195,56 @@ class RegistrarAsistencia:
         dni = self.entry_dni.get()
         self.ventana_agregar_abierta = True  # Marcar que la ventana de agregar usuario está abierta
         self.agregar_personas = tk.Toplevel(self.master)
+        self.agregar_personas.geometry("400x450")
+        self.agregar_personas.configure(bg="#282c34")
         self.agregar_personas.title("Agregar Usuario")
 
-        tk.Label(self.agregar_personas, text="Nombres").pack()
-        nombre_entry = tk.Entry(self.agregar_personas)
-        nombre_entry.pack()
+        logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'logo_UNAP.png')
+        if not os.path.exists(logo_path):
+            messagebox.showerror("Error", f"No se encontró el logo en {logo_path}")
+            return
 
-        tk.Label(self.agregar_personas, text="Apellido paterno").pack()
-        apellido_paterno_entry = tk.Entry(self.agregar_personas)
-        apellido_paterno_entry.pack()
+        self.logo_img = Image.open(logo_path)
+        self.logo_img = self.logo_img.resize((50, 50), Image.LANCZOS)
+        self.logo_photo = ImageTk.PhotoImage(self.logo_img)
 
-        tk.Label(self.agregar_personas, text="Apellido materno").pack()
-        apellido_materno_entry = tk.Entry(self.agregar_personas)
-        apellido_materno_entry.pack()
+        label_font = ("Arial", 12, "bold")
+        entry_font = ("Arial", 12)
 
-        tk.Label(self.agregar_personas, text="DNI").pack()
-        dni_entry = tk.Entry(self.agregar_personas)
+        logo_frame = tk.Frame(self.agregar_personas, bg="#282c34")
+        logo_frame.pack(pady=(20, 10))
+
+        tk.Label(logo_frame, image=self.logo_photo, bg="#282c34").pack(side="left", padx=10)
+        tk.Label(logo_frame, text="Agregando al Registro", font=("Arial", 16, "bold"), bg="#282c34", fg="#ffffff").pack(side="left")
+
+
+        # Nombres
+        tk.Label(self.agregar_personas, text="Nombres", font=label_font, bg="#282c34", fg="#ffffff").pack(pady=(20, 5))
+        nombre_entry = tk.Entry(self.agregar_personas, font=entry_font, bd=2, relief="solid")
+        nombre_entry.pack(pady=5)
+
+        # Apellido paterno
+        tk.Label(self.agregar_personas, text="Apellido paterno", font=label_font, bg="#282c34", fg="#ffffff").pack(pady=5)
+        apellido_paterno_entry = tk.Entry(self.agregar_personas, font=entry_font, bd=2, relief="solid")
+        apellido_paterno_entry.pack(pady=5)
+
+        # Apellido materno
+        tk.Label(self.agregar_personas, text="Apellido materno", font=label_font, bg="#282c34", fg="#ffffff").pack(pady=5)
+        apellido_materno_entry = tk.Entry(self.agregar_personas, font=entry_font, bd=2, relief="solid")
+        apellido_materno_entry.pack(pady=5)
+
+        # DNI
+        tk.Label(self.agregar_personas, text="DNI", font=label_font, bg="#282c34", fg="#ffffff").pack(pady=5)
+        dni_entry = tk.Entry(self.agregar_personas, font=entry_font, bd=2, relief="solid")
         dni_entry.insert(0, dni)
         dni_entry.config(state='disabled')  # Hacer que el campo de DNI sea solo lectura
-        dni_entry.pack()
-
-        
+        dni_entry.pack(pady=5)
 
         def agregar_persona():
             nombre = nombre_entry.get()
             apellido_pat = apellido_paterno_entry.get()
             apellido_mat = apellido_materno_entry.get()
             dni = dni_entry.get()
-            
-
 
             if nombre and apellido_pat and dni and apellido_mat:
                 if lista_personas.insertar_personas(nombre, apellido_pat, apellido_mat, dni):
@@ -236,9 +267,14 @@ class RegistrarAsistencia:
 
         # Llamar a `agregar_persona` al presionar Enter en el último campo
         apellido_materno_entry.bind('<Return>', lambda event: agregar_persona())
-        tk.Button(self.agregar_personas, text="Agregar", command=agregar_persona, bg='#4CAF50', fg='white', font=('Helvetica', 12, 'bold')).pack(pady=10)
+
+        # Botón de agregar
+        tk.Button(self.agregar_personas, text="Agregar", command=agregar_persona,
+                bg='#4CAF50', fg='white', font=('Helvetica', 12, 'bold'),
+                bd=0, relief="flat", activebackground="#45a049", activeforeground="white").pack(pady=10)
 
         self.agregar_personas.protocol("WM_DELETE_WINDOW", self.on_closing)
+
 
     def on_closing(self):
         self.ventana_agregar_abierta = False
