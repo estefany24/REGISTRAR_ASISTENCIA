@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 from collections import Counter
+import calendar
 
 class MainWindow:
     def __init__(self, master):
@@ -37,8 +38,8 @@ class MainWindow:
 
         # Menú Reporte Semanal
         autores_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        autores_menu.add_command(label="Reporte mensual")
-        menubar.add_cascade(label="Reporte Semanal", menu=autores_menu)
+        autores_menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
+        menubar.add_cascade(label="Reporte mensual", menu=autores_menu)
 
         # Menú Cargar Datos
         cerrar_sesion_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
@@ -67,13 +68,25 @@ class MainWindow:
         self.mostrar_datos_registro()
         self.agregar_botones_reportes()
 
+    def mostrar_reporte_mensual(self):
+        self.limpiar_pantalla()
+        self.agregar_barra_seleccion_mes()
+        self.crear_area_resultado_registro()
+        self.agregar_boton_exportarMEN()
+        self.agregar_boton_grafico()
+
     def mostrar_reporte_semanal(self):
         self.limpiar_pantalla()
         self.agregar_barra_seleccion_fechas()
-        self.crear_area_resultado_registro_SEMA()
+        self.crear_area_resultado_registro()
         self.agregar_boton_exportar()
         self.agregar_boton_grafico()
         
+    def agregar_boton_exportarMEN(self):
+        exportar_frame = tk.Frame(self.master)
+        exportar_frame.pack(pady=10)
+        boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf_MESUAL)
+        boton_exportar.pack()
 
     def agregar_boton_exportar(self):
         exportar_frame = tk.Frame(self.master)
@@ -91,6 +104,22 @@ class MainWindow:
         
         # Llamar a la función de exportación con el rango de fechas
         exportar_pdf.exportar_datos_rango_pdf(fecha_inicio, fecha_fin)
+        messagebox.showinfo("Éxito", "Datos exportados a PDF exitosamente.")
+    
+    def exportar_a_pdf_MESUAL(self):
+
+        mes = int(self.mes_entry.get())
+        anio = int(self.anio_entry.get())
+
+        fecha_inicioS = f"{anio}-{mes:02d}-01"
+        fecha_finN = f"{anio}-{mes:02d}-{calendar.monthrange(anio, mes)[1]:02d}"
+
+        if fecha_inicioS > fecha_finN:
+            messagebox.showerror("Error", "La fecha final debe ser mayor o igual a la fecha de inicio.")
+            return
+        
+        # Llamar a la función de exportación con el rango de fechas
+        exportar_pdf.exportar_datos_rango_pdf(fecha_inicioS, fecha_finN)
         messagebox.showinfo("Éxito", "Datos exportados a PDF exitosamente.")
 
     def limpiar_pantalla(self):
@@ -246,7 +275,26 @@ class MainWindow:
 
         boton_generar_reporte = tk.Button(fechas_frame, text="Generar reporte", command=self.mostrar_datos_semanales)
         boton_generar_reporte.pack(side=tk.LEFT, padx=5)
+    
 
+    def agregar_barra_seleccion_mes(self):
+        mes_frame = tk.Frame(self.master)
+        mes_frame.pack(pady=10)
+
+        tk.Label(mes_frame, text="Seleccione el mes y el año:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        
+        self.mes_entry = ttk.Combobox(mes_frame, values=list(range(1, 13)), state="readonly")
+        self.mes_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        self.mes_entry.current(datetime.now().month - 1)
+        
+        self.anio_entry = ttk.Combobox(mes_frame, values=list(range(2000, datetime.now().year + 1)), state="readonly")
+        self.anio_entry.grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        self.anio_entry.current(datetime.now().year - 2000)
+
+        boton_generar_reporte = tk.Button(mes_frame, text="Generar reporte", command=self.mostrar_datos_mensuales)
+        boton_generar_reporte.grid(row=1, columnspan=3, padx=5, pady=10)
+    
+    
 
     def actualizar_fecha_inicio_y_fin(self, event):
         fecha_inicio_str = self.fecha_inicio_entry.get()
@@ -274,6 +322,41 @@ class MainWindow:
             self.tree.delete(row)
         for resultado in resultados:
             self.tree.insert('', tk.END, values=resultado)
+
+     
+    def mostrar_datos_mensuales(self):
+        try:
+            mes = int(self.mes_entry.get())
+            anio = int(self.anio_entry.get())
+            
+            if not mes or not anio:
+                messagebox.showerror("Error", "Debe seleccionar el mes y el año.")
+                return
+            
+            # Validar mes y año
+            if mes < 1 or mes > 12:
+                messagebox.showerror("Error", "El mes debe estar entre 1 y 12.")
+                return
+            if anio < 1900 or anio > 2100:
+                messagebox.showerror("Error", "El año debe estar entre 1900 y 2100.")
+                return
+            
+            # Formatear correctamente la fecha
+            fecha_inicio = f"{anio}-{mes:02d}-01"
+            fecha_fin = f"{anio}-{mes:02d}-{calendar.monthrange(anio, mes)[1]:02d}"
+            
+            print(fecha_inicio)
+            print(fecha_fin)
+            
+            resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+            
+            for row in self.tree.get_children():
+                self.tree.delete(row)
+            for resultado in resultados:
+                self.tree.insert('', tk.END, values=resultado)
+        except ValueError:
+            messagebox.showerror("Error", "Mes y año deben ser números enteros.")
+
 
 
     def crear_area_resultado_registro_SEMA(self):
@@ -334,6 +417,44 @@ class MainWindow:
         # Crear una nueva ventana para el gráfico
         ventana_grafico = Toplevel(self.master)
         ventana_grafico.title("Gráfico de Asistencia Semanal")
+        ventana_grafico.geometry("800x600")
+
+        # Insertar el gráfico en la nueva ventana
+        canvas = FigureCanvasTkAgg(fig, master=ventana_grafico)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+
+    def mostrar_grafico_mensual(self):
+        mes = self.mes_entry.get()
+        anio = self.anio_entry.get()
+        
+        if not mes or not anio:
+            messagebox.showerror("Error", "Debe seleccionar el mes y el año.")
+            return
+        
+        fecha_inicio = f"{anio}-{mes}-01"
+        fecha_fin = f"{anio}-{mes}-{calendar.monthrange(int(anio), int(mes))[1]}"
+        
+        conteo_asistencia = asistencia.obtener_conteo_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        
+        if not conteo_asistencia:
+            messagebox.showerror("Error", "No hay datos para mostrar en el gráfico.")
+            return
+        
+        fechas = [resultado[0] for resultado in conteo_asistencia]
+        cantidades = [resultado[1] for resultado in conteo_asistencia]
+        
+        fig, ax = plt.subplots()
+        ax.bar(fechas, cantidades, color='blue')
+        ax.set_xlabel('Fecha')
+        ax.set_ylabel('Cantidad de personas')
+        ax.set_title('Asistencia Mensual')
+        ax.grid(True)
+
+        # Crear una nueva ventana para el gráfico
+        ventana_grafico = Toplevel(self.master)
+        ventana_grafico.title("Gráfico de Asistencia Mensual")
         ventana_grafico.geometry("800x600")
 
         # Insertar el gráfico en la nueva ventana
