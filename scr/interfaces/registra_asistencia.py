@@ -12,9 +12,11 @@ class RegistrarAsistencia:
     def __init__(self, master):
         self.master = master
         self.master.title("Registrar Asistencia")
-        self.master.geometry("400x250")
+        self.master.geometry("400x400")
         self.master.configure(bg="#282c34") 
+        self.ventana_agregar_abierta = False
         self.iniciar()
+        
 
     def iniciar(self):
         logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'logo_UNAP.png')
@@ -41,6 +43,7 @@ class RegistrarAsistencia:
         self.entry_dni = tk.Entry(self.master, font=("Arial", 14), bd=2, relief="solid")  # Añadido borde y mejorado el estilo
         self.entry_dni.grid(row=1, column=1, padx=10, pady=10, sticky='w')
         self.entry_dni.bind('<Return>', self.mostrar_informacion)
+        self.entry_dni.focus_set()
 
         # Etiqueta para mostrar información del usuario
         self.info_usuario = tk.Label(self.master, text="", font=("Arial", 12), bg="#282c34", fg="#ffffff")  # Cambiado el color del texto y la fuente
@@ -74,8 +77,11 @@ class RegistrarAsistencia:
         for i in range(2):
             self.master.grid_columnconfigure(i, weight=1)
 
+        self.master.protocol("WM_DELETE_WINDOW", self.logout)
+
     def change_button_color(self, button, color):
         button.config(bg=color)
+        
 
 
     def logout(self):
@@ -89,7 +95,7 @@ class RegistrarAsistencia:
         dni = self.entry_dni.get()
         id_persona = lista_personas.obtener_id_por_dni(dni)
 
-        if dni:
+        if dni and len(dni)==8:
             if id_persona:
                 nombre = lista_personas.obtener_nombre_por_id(id_persona[0])
                 apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
@@ -97,7 +103,8 @@ class RegistrarAsistencia:
                 if nombre and apellido_pat:
                     self.info_usuario.config(text=f"Nombre: {nombre} {apellido_pat}", bg="yellow")
                     self.btn_registrar.config(state=tk.NORMAL)
-                    #self.play_sound()
+                    # Desvincular el evento '<Return>' para evitar que se llame a `registrar_asistencia` más de una vez
+                    self.master.unbind('<Return>')
                     # Solo vincular el evento '<Return>' para llamar a `registrar_asistencia` una vez
                     self.master.bind('<Return>', self.registrar_asistencia)
                 else:
@@ -124,7 +131,8 @@ class RegistrarAsistencia:
                     if nombre and apellido_pat:
                         self.info_usuario.config(text=f"Nombre: {nombres} {apellido_paterno}", bg="yellow")
                         self.btn_registrar.config(state=tk.NORMAL)
-                        #self.play_sound()
+                        # Desvincular el evento '<Return>' para evitar que se llame a `registrar_asistencia` más de una vez
+                        self.master.unbind('<Return>')
                         # Solo vincular el evento '<Return>' para llamar a `registrar_asistencia` una vez
                         self.master.bind('<Return>', self.registrar_asistencia)
                     else:
@@ -132,11 +140,12 @@ class RegistrarAsistencia:
                         self.master.after(2000, self.limpiar_informacion)
 
                 else:
-                    if not hasattr(self, 'ventana_agregar_abierta') or not self.ventana_agregar_abierta:
+                    if not self.ventana_agregar_abierta:  # Verifica que la ventana de agregar usuario no esté abierta
                         self.crear_ventana_agregar_usuario()
                     else:
                         self.info_usuario.config(text="Ya está abierta una ventana para agregar el usuario.", bg="red")
 
+      
         else:
             messagebox.showerror("Error", "Ingrese un DNI")
             self.master.after(2000, self.limpiar_informacion)
@@ -228,6 +237,14 @@ class RegistrarAsistencia:
         # Llamar a `agregar_persona` al presionar Enter en el último campo
         apellido_materno_entry.bind('<Return>', lambda event: agregar_persona())
         tk.Button(self.agregar_personas, text="Agregar", command=agregar_persona, bg='#4CAF50', fg='white', font=('Helvetica', 12, 'bold')).pack(pady=10)
+
+        self.agregar_personas.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def on_closing(self):
+        self.ventana_agregar_abierta = False
+        self.agregar_personas.destroy()
+
+
 
 if __name__ == "__main__":
     root = tk.Tk()
