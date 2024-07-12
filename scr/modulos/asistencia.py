@@ -103,6 +103,31 @@ def obtener_grafico_por_fecha(fecha_inicio, fecha_fin):
         conn.close()
 
 
+def agregar_asistencia_desde_excel(df):
+    conn = conectar_bd()
+    if not conn:
+        return None
+    
+    try:
+        cursor = conn.cursor()
+        
+        for _, row in df.iterrows():
+            lista_id = row['lista_id']
+            fecha = row['fecha']
+            hora_entrada = row['hora_entrada']
+            
+            cursor.execute('''
+            INSERT INTO asistencia (lista_id, fecha, hora_entrada)
+            VALUES (?, ?, ?)
+            ''', (lista_id, fecha, hora_entrada))
+        
+        conn.commit()
+        messagebox.showinfo("Éxito", "Datos agregados correctamente a la base de datos.")
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", f"Error al agregar datos a la base de datos: {e}")
+    finally:
+        conn.close()
+
 '''
 
 def mostrar_grafico_semanal(self):

@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Tk, Menu, Toplevel
+from tkinter import Tk, Menu, Toplevel,filedialog
 from tkinter import messagebox ,ttk,Menu
 from scr.modulos import asistencia
 from scr.modulos import reportes
@@ -43,7 +43,7 @@ class MainWindow:
 
         # Menú Cargar Datos
         cerrar_sesion_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        cerrar_sesion_menu.add_command(label="Cargar datos")
+        cerrar_sesion_menu.add_command(label="Cargar datos(excel)",command=self.crear_barra_añadir_excel_asistencia)
         menubar.add_cascade(label="Cargar Datos", menu=cerrar_sesion_menu)
 
         # Menú Salir
@@ -498,3 +498,69 @@ class MainWindow:
             
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error: {e}")
+
+
+
+
+    # TRATANDO DE AGREGAR PROR EXCEL 
+    
+    def crear_barra_añadir_excel_asistencia(self):
+        def open_file():
+            filepath = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
+            if not filepath:
+                return
+            
+            try:
+                df = pd.read_excel(filepath)
+                
+                # Convertir columnas numéricas a tipo 'object' antes de reemplazar NaN
+                for col in df.select_dtypes(include=[float, int]).columns:
+                    df[col] = df[col].astype('object')
+                    
+                df.fillna('', inplace=True)  # Reemplazar NaN con una cadena vacía
+
+                self.text_widget.delete('1.0', tk.END)
+                self.text_widget.insert(tk.END, df.to_string(index=False))
+
+                self.file_label.config(text=f"Archivo seleccionado: {filepath}")
+
+                self.data = df
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo leer el archivo\n{e}")
+
+        def agregar_a_SQlite():
+            if self.data is None:
+                messagebox.showwarning("Advertencia", "No hay datos para agregar a la base de datos")
+                return
+            asistencia.agregar_asistencia_desde_excel(self.data)
+            reset()
+        
+        def reset():
+            # Borrar el contenido del Text widget
+            self.text_widget.delete('1.0', tk.END)
+            # Restablecer el Label del archivo seleccionado
+            self.file_label.config(text="Archivo seleccionado: Ninguno")
+            # Restablecer la variable de datos
+            self.data = None
+
+        ventana_archivo = tk.Toplevel(self.master)
+        ventana_archivo.title("Importar Asistencia desde Excel")
+        ventana_archivo.geometry("700x500")
+
+        search_frame = tk.Frame(ventana_archivo)
+        search_frame.pack(pady=10)
+
+        tk.Label(search_frame, text="Seleccionar Archivo").pack(side=tk.LEFT, padx=5)
+        self.file_label = tk.Label(ventana_archivo, text="Archivo seleccionado: Ninguno")
+        self.file_label.pack(pady=10)
+
+        search_button = ttk.Button(search_frame, text="Buscar", command=open_file)
+        search_button.pack(side=tk.LEFT, padx=5)
+
+        self.text_widget = tk.Text(ventana_archivo, wrap='none', width=70, height=30)
+        self.text_widget.pack(expand=True, fill='both')
+
+        boton_agregar_pres = ttk.Button(search_frame, text="Agregar a SQlite", command=agregar_a_SQlite)
+        boton_agregar_pres.pack(side=tk.LEFT, padx=5)
+
+        self.data = None
