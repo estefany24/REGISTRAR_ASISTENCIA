@@ -74,14 +74,14 @@ class MainWindow:
     def mostrar_reporte_mensual(self):
         self.limpiar_pantalla()
         self.agregar_barra_seleccion_mes()
-        self.crear_area_resultado_registro()
+        self.crear_area_resultado_registro_SEMA()
         self.agregar_boton_exportarMEN()
         self.agregar_boton_graficoMEN()
 
     def mostrar_reporte_semanal(self):
         self.limpiar_pantalla()
         self.agregar_barra_seleccion_fechas()
-        self.crear_area_resultado_registro()
+        self.crear_area_resultado_registro_SEMA()
         self.agregar_boton_exportar()
         self.agregar_boton_grafico()
         
@@ -366,18 +366,24 @@ class MainWindow:
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
 
-        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Fecha', 'Hora de entrada'), show='headings', height=20)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada','Fecha'), show='headings', height=15)
         self.tree.heading('ID', text='ID')
         self.tree.heading('Nombres', text='Nombres')
-        self.tree.heading('Fecha', text='Fecha')
-        self.tree.heading('Hora de entrada', text='Hora de entrada')
+        self.tree.heading('Apellido Pat', text='Apell. Paterno')
+        self.tree.heading('Apellido Mat', text='Apell. Materno')
+        self.tree.heading('DNI', text='DNI')
+        self.tree.heading('Hora Entrada', text='Hora Entrada')
+        self.tree.heading('Fecha',text='Fecha')
 
         self.tree.pack(fill=tk.BOTH, expand=True)
 
         self.tree.column('ID', width=5, anchor=tk.CENTER)
-        self.tree.column('Nombres', width=180, anchor=tk.CENTER)
-        self.tree.column('Fecha', width=180, anchor=tk.CENTER)
-        self.tree.column('Hora de entrada', width=180, anchor=tk.CENTER)
+        self.tree.column('Nombres', width=100, anchor=tk.CENTER)
+        self.tree.column('Apellido Pat', width=100, anchor=tk.CENTER)
+        self.tree.column('Apellido Mat', width=100, anchor=tk.CENTER)
+        self.tree.column('DNI', width=100, anchor=tk.CENTER)
+        self.tree.column('Hora Entrada', width=100, anchor=tk.CENTER)
+        self.tree.column('Fecha',width=180, anchor=tk.CENTER)
 
 
     def agregar_boton_grafico(self):
