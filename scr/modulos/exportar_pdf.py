@@ -10,6 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
+import calendar
 
 # Configura las rutas
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Carpeta modulos
@@ -38,6 +39,7 @@ def exportar_datos_pdf(fecha):
         FROM asistencia
         INNER JOIN lista_persona ON asistencia.lista_id = lista_persona.ID
         WHERE asistencia.fecha = ?
+        ORDER BY asistencia.fecha ASC;  -- Ordenar por fecha ascendente
     """
     cursor.execute(query, (fecha,))
     resultados = cursor.fetchall()
@@ -124,6 +126,7 @@ def exportar_datos_rango_pdf(fecha_inicio, fecha_fin):
         FROM asistencia
         INNER JOIN lista_persona ON asistencia.lista_id = lista_persona.ID
         WHERE fecha BETWEEN ? AND ?
+        ORDER BY asistencia.fecha ASC;  -- Ordenar por fecha ascendente
     """, (fecha_inicio, fecha_fin))
     datos = cursor.fetchall()
     conn.close()
@@ -160,6 +163,87 @@ def exportar_datos_rango_pdf(fecha_inicio, fecha_fin):
 
     # Agregar el título del reporte
     contenido.append(Paragraph(f"Reporte de Asistencia del {fecha_inicio} al {fecha_fin}", style=titulo_style))
+
+    # Preparar los datos para la tabla
+    encabezados = ["ID", "Nombre", "Apellido Paterno", "Apellido Materno", "DNI", "Hora Entrada", "Fecha"]
+    datos_tabla = [encabezados] + [list(dato) for dato in datos]
+
+    # Crear una tabla
+    tabla = Table(datos_tabla)
+
+    # Estilizar la tabla
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), '#4F81BD'),
+        ('TEXTCOLOR', (0, 0), (-1, 0), '#FFFFFF'),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), '#D0E0F0'),
+        ('GRID', (0, 0), (-1, -1), 1, '#B5B5B5'),
+    ]))
+
+    # Agregar la tabla al contenido del PDF
+    contenido.append(tabla)
+
+    # Construir el PDF
+    doc.build(contenido)
+    print(f"Datos exportados a {archivo}.")
+
+
+
+def exportar_datos_mes_pdf(fecha_inicio, fecha_fin, mes, anio):
+    # Conectar a la base de datos
+    conn = conectar_bd()
+    if conn is None:
+        print("No se pudo conectar a la base de datos.")
+        return
+
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT asistencia.id, lista_persona.nombres, lista_persona.apellido_pat, lista_persona.apellido_mat, lista_persona.dni, asistencia.hora_entrada, asistencia.fecha
+        FROM asistencia
+        INNER JOIN lista_persona ON asistencia.lista_id = lista_persona.ID
+        WHERE strftime('%Y-%m', fecha) = ?
+        ORDER BY asistencia.fecha ASC;  -- Ordenar por fecha ascendente
+    """, (f"{anio}-{mes:02d}",))
+    datos = cursor.fetchall()
+    conn.close()
+
+    # Verificar que hay datos disponibles
+    if not datos:
+        print(f"No hay datos de asistencia para el mes {mes}/{anio}.")
+        return
+
+    # Abrir un diálogo para seleccionar la carpeta de destino y el nombre del archivo
+    archivo = filedialog.asksaveasfilename(defaultextension=".pdf",
+                                          filetypes=[("PDF Files", "*.pdf")],
+                                          title="Guardar archivo como",
+                                          initialfile=f"reporte_asistencia_{mes}_{anio}.pdf")
+    if not archivo:
+        print("No se seleccionó ningún archivo.")
+        return
+
+    # Crear el archivo PDF
+    doc = SimpleDocTemplate(archivo, pagesize=letter)
+    contenido = []
+
+    # Obtener los estilos
+    styles = getSampleStyleSheet()
+
+    # Crear un estilo para el título
+    titulo_style = ParagraphStyle(
+        name='CustomTitle',
+        fontSize=16,
+        alignment=1,
+        spaceAfter=12,
+        parent=styles['Title']  # Usar 'Title' como base para el nuevo estilo
+    )
+
+    # Agregar el título del reporte
+    contenido.append(Paragraph(f"Reporte de Asistencia del {calendar.month_name[mes]} de {anio}", style=titulo_style))
 
     # Preparar los datos para la tabla
     encabezados = ["ID", "Nombre", "Apellido Paterno", "Apellido Materno", "DNI", "Hora Entrada", "Fecha"]

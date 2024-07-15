@@ -52,6 +52,7 @@ def obtener_asistencia():
         SELECT asistencia.id, lista_persona.nombres, lista_persona.apellido_pat, lista_persona.apellido_mat, lista_persona.dni, asistencia.hora_entrada, asistencia.fecha
         FROM asistencia
         INNER JOIN lista_persona ON asistencia.lista_id=lista_persona.ID
+        ORDER BY asistencia.fecha DESC  -- Ordenar por fecha descendente
         ''')
         prestamos = cursor.fetchall()
         return prestamos

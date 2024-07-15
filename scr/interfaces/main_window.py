@@ -56,6 +56,7 @@ class MainWindow:
 
         self.master.config(menu=menubar)
         self.mostrar_reportes_por_dia()
+        self.master.protocol("WM_DELETE_WINDOW", self.logout)
 
     def logout(self):
         self.master.destroy()
@@ -114,16 +115,24 @@ class MainWindow:
         mes = int(self.mes_entry.get())
         anio = int(self.anio_entry.get())
 
-        fecha_inicioS = f"{anio}-{mes:02d}-01"
-        fecha_finN = f"{anio}-{mes:02d}-{calendar.monthrange(anio, mes)[1]:02d}"
-
-        if fecha_inicioS > fecha_finN:
-            messagebox.showerror("Error", "La fecha final debe ser mayor o igual a la fecha de inicio.")
+        # Validar que el mes sea válido (de 1 a 12)
+        if mes < 1 or mes > 12:
+            messagebox.showerror("Error", "Ingrese un número de mes válido (1-12).")
             return
-        
-        # Llamar a la función de exportación con el rango de fechas
-        exportar_pdf.exportar_datos_rango_pdf(fecha_inicioS, fecha_finN)
-        messagebox.showinfo("Éxito", "Datos exportados a PDF exitosamente.")
+
+        # Obtener el último día del mes
+        ultimo_dia_mes = calendar.monthrange(anio, mes)[1]
+
+        # Construir las fechas de inicio y fin del mes
+        fecha_inicio = f"{anio}-{mes:02d}-01"
+        fecha_fin = f"{anio}-{mes:02d}-{ultimo_dia_mes:02d}"
+
+        try:
+            # Llamar a la función de exportación con el mes seleccionado
+            exportar_pdf.exportar_datos_mes_pdf(fecha_inicio, fecha_fin, mes, anio)
+            messagebox.showinfo("Éxito", f"Datos del mes {mes}/{anio} exportados a PDF exitosamente.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al exportar a PDF: {e}")
 
     def limpiar_pantalla(self):
         for widget in self.master.winfo_children():
@@ -164,13 +173,14 @@ class MainWindow:
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
 
-        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada'), show='headings', height=15)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada','fecha'), show='headings', height=15)
         self.tree.heading('ID', text='ID')
         self.tree.heading('Nombres', text='Nombres')
         self.tree.heading('Apellido Pat', text='Apell. Paterno')
         self.tree.heading('Apellido Mat', text='Apell. Materno')
         self.tree.heading('DNI', text='DNI')
         self.tree.heading('Hora Entrada', text='Hora Entrada')
+        self.tree.heading('fecha',text='fecha')
 
         self.tree.pack(fill=tk.BOTH, expand=True)
 
@@ -180,6 +190,7 @@ class MainWindow:
         self.tree.column('Apellido Mat', width=100, anchor=tk.CENTER)
         self.tree.column('DNI', width=100, anchor=tk.CENTER)
         self.tree.column('Hora Entrada', width=100, anchor=tk.CENTER)
+        self.tree.column('fecha',width=100, anchor=tk.CENTER)
 
     def mostrar_datos_registro(self):
         resultados = asistencia.obtener_asistencia()
