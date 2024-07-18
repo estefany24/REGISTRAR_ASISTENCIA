@@ -814,46 +814,46 @@ class MainWindow:
         self.exportar_datos_matris_pdf(self.mes, self.anio)
 
     def exportar_datos_matris_pdf(self, mes, anio):
-    # Crear el archivo PDF
-    archivo = filedialog.asksaveasfilename(defaultextension=".pdf",
-                                           filetypes=[("PDF Files", "*.pdf")],
-                                           title="Guardar archivo como",
-                                           initialfile=f"reporte_asistencia_{mes}_{anio}.pdf")
-    if not archivo:
-        return
+        # Crear el archivo PDF
+        archivo = filedialog.asksaveasfilename(defaultextension=".pdf",
+                                            filetypes=[("PDF Files", "*.pdf")],
+                                            title="Guardar archivo como",
+                                            initialfile=f"reporte_asistencia_{mes}_{anio}.pdf")
+        if not archivo:
+            return
 
-    doc = SimpleDocTemplate(archivo, pagesize=landscape(letter))
-    contenido = []
+        doc = SimpleDocTemplate(archivo, pagesize=landscape(letter))
+        contenido = []
 
-    styles = getSampleStyleSheet()
-    titulo_style = ParagraphStyle(name='CustomTitle', fontSize=16, alignment=1, spaceAfter=12, parent=styles['Title'])
-    contenido.append(Paragraph(f"Reporte de Asistencia del {calendar.month_name[mes]} de {anio}", style=titulo_style))
+        styles = getSampleStyleSheet()
+        titulo_style = ParagraphStyle(name='CustomTitle', fontSize=16, alignment=1, spaceAfter=12, parent=styles['Title'])
+        contenido.append(Paragraph(f"Reporte de Asistencia del {calendar.month_name[mes]} de {anio}", style=titulo_style))
 
-    # Preparar los datos para la tabla
-    datos_tabla = [['Apellido Pat', 'DNI'] + [f'{dia}' for dia in range(1, 31)]]
+        # Preparar los datos para la tabla
+        datos_tabla = [['Apellido Pat', 'DNI'] + [f'{dia}' for dia in range(1, 31)]]
 
-    # Obtener los datos de la Treeview
-    for child in self.tree.get_children():
-        item = self.tree.item(child)["values"]
-        apellido_pat = item[2]  # Índice 2 para Apellido Pat
-        dni = item[4]  # Índice 4 para DNI
-        asistencia = ['P' if dia in item[5:] else 'F' for dia in range(1, 31)]  # Índices 5 hasta el final para la asistencia
-        datos_tabla.append([apellido_pat, dni] + asistencia)
+        # Obtener los datos de la Treeview
+        for child in self.tree.get_children():
+            item = self.tree.item(child)["values"]
+            apellido_pat = item[2]  # Índice 2 para Apellido Pat
+            dni = item[4]  # Índice 4 para DNI
+            asistencia = ['P' if dia in item[5:] else 'F' for dia in range(1, 31)]  # Índices 5 hasta el final para la asistencia
+            datos_tabla.append([apellido_pat, dni] + asistencia)
 
-    # Crear la tabla
-    tabla = Table(datos_tabla)
-    tabla.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#4F81BD")),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#D0E0F0")),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-    ]))
+        # Crear la tabla
+        tabla = Table(datos_tabla)
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#D0E0F0")),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
 
-    contenido.append(tabla)
-    doc.build(contenido)
-    messagebox.showinfo("Éxito", f"Datos exportados a {archivo}.")
+        contenido.append(tabla)
+        doc.build(contenido)
+        messagebox.showinfo("Éxito", f"Datos exportados a {archivo}.")
