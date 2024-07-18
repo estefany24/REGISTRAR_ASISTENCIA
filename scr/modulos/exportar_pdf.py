@@ -11,6 +11,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 import calendar
+from tkinter import ttk, Menu, messagebox, filedialog
 
 # Configura las rutas
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Carpeta modulos
@@ -272,3 +273,45 @@ def exportar_datos_mes_pdf(fecha_inicio, fecha_fin, mes, anio):
     # Construir el PDF
     doc.build(contenido)
     print(f"Datos exportados a {archivo}.")
+
+
+
+def exportar_datos_matris_pdf(self, mes, anio):
+        # Crear el archivo PDF
+        archivo = filedialog.asksaveasfilename(defaultextension=".pdf",
+                                               filetypes=[("PDF Files", "*.pdf")],
+                                               title="Guardar archivo como",
+                                               initialfile=f"reporte_asistencia_{mes}_{anio}.pdf")
+        if not archivo:
+            return
+
+        doc = SimpleDocTemplate(archivo, pagesize=letter)
+        contenido = []
+
+        styles = getSampleStyleSheet()
+        titulo_style = ParagraphStyle(name='CustomTitle', fontSize=16, alignment=1, spaceAfter=12, parent=styles['Title'])
+        contenido.append(Paragraph(f"Reporte de Asistencia del {calendar.month_name[mes]} de {anio}", style=titulo_style))
+
+        columnas = self.tree["columns"]
+        datos_tabla = [columnas]
+        for child in self.tree.get_children():
+            item = self.tree.item(child)["values"]
+            datos_tabla.append(item)
+
+        tabla = Table(datos_tabla)
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#D0E0F0")),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+
+        contenido.append(tabla)
+        doc.build(contenido)
+        messagebox.showinfo("Éxito", f"Datos exportados a {archivo}.")
+

@@ -17,8 +17,14 @@ import pandas as pd
 from collections import Counter
 import calendar
 from PIL import Image, ImageTk
-from calendar import monthrange
+from calendar import monthrange,day_abbr
 from scr.modulos.asistencia import obtener_asistencia_por_fecha
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter,landscape
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 
 
 class MainWindow:
@@ -92,6 +98,7 @@ class MainWindow:
         self.entrada()
         self.agregar_barra_seleccion_matris()
         self.crear_area_resultado_registro_MATRI()
+        self.agregar_boton_descargar_pdf()
 
 
     def mostrar_reporte_semanal(self):
@@ -758,10 +765,10 @@ class MainWindow:
             #self.tree.column(col, width=50, anchor=tk.CENTER)
             self.tree.column(col, width=20,anchor=tk.CENTER)
         self.tree.column('ID', width=5, anchor=tk.CENTER)
-        self.tree.column('Nombres', width=150)
-        self.tree.column('Apellido Pat', width=160)
-        self.tree.column('Apellido Mat', width=160)
-        self.tree.column('DNI', width=110, anchor=tk.CENTER)
+        self.tree.column('Nombres', width=120)
+        self.tree.column('Apellido Pat', width=130)
+        self.tree.column('Apellido Mat', width=130)
+        self.tree.column('DNI', width=100, anchor=tk.CENTER)
 
 
         style = ttk.Style()
@@ -777,6 +784,8 @@ class MainWindow:
     def mostrar_datos_mensualesMA(self):
         mes = int(self.mes_entry.get())
         anio = int(self.anio_entry.get())
+        self.mes = mes
+        self.anio = anio
 
         fecha_inicio = datetime(anio, mes, 1).strftime('%Y-%m-%d')
         _, num_days = monthrange(anio, mes)
@@ -792,3 +801,59 @@ class MainWindow:
         for asistencia in asistencias:
             valores = list(asistencia[:5]) + ['P' if dia in [datetime.strptime(asistencia[6], '%Y-%m-%d').day for dia in range(1, num_days + 1)] else 'F' for dia in range(1, num_days + 1)]
             self.tree.insert('', 'end', values=valores)
+
+    def agregar_boton_descargar_pdf(self):
+        boton_frame = tk.Frame(self.master)
+        boton_frame.pack(pady=10)
+
+        boton_descargar_pdf = tk.Button(boton_frame, text="Descargar en PDF", command=self.descargar_pdf, bg="#4caf50", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                                        padx=15, pady=10, borderwidth=0, highlightthickness=0, activebackground="#43a047", activeforeground="#ffffff")
+        boton_descargar_pdf.pack(side=tk.LEFT, padx=5)
+
+    def descargar_pdf(self):
+        self.exportar_datos_matris_pdf(self.mes, self.anio)
+
+    def exportar_datos_matris_pdf(self, mes, anio):
+    # Crear el archivo PDF
+    archivo = filedialog.asksaveasfilename(defaultextension=".pdf",
+                                           filetypes=[("PDF Files", "*.pdf")],
+                                           title="Guardar archivo como",
+                                           initialfile=f"reporte_asistencia_{mes}_{anio}.pdf")
+    if not archivo:
+        return
+
+    doc = SimpleDocTemplate(archivo, pagesize=landscape(letter))
+    contenido = []
+
+    styles = getSampleStyleSheet()
+    titulo_style = ParagraphStyle(name='CustomTitle', fontSize=16, alignment=1, spaceAfter=12, parent=styles['Title'])
+    contenido.append(Paragraph(f"Reporte de Asistencia del {calendar.month_name[mes]} de {anio}", style=titulo_style))
+
+    # Preparar los datos para la tabla
+    datos_tabla = [['Apellido Pat', 'DNI'] + [f'{dia}' for dia in range(1, 31)]]
+
+    # Obtener los datos de la Treeview
+    for child in self.tree.get_children():
+        item = self.tree.item(child)["values"]
+        apellido_pat = item[2]  # Índice 2 para Apellido Pat
+        dni = item[4]  # Índice 4 para DNI
+        asistencia = ['P' if dia in item[5:] else 'F' for dia in range(1, 31)]  # Índices 5 hasta el final para la asistencia
+        datos_tabla.append([apellido_pat, dni] + asistencia)
+
+    # Crear la tabla
+    tabla = Table(datos_tabla)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#4F81BD")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#D0E0F0")),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    contenido.append(tabla)
+    doc.build(contenido)
+    messagebox.showinfo("Éxito", f"Datos exportados a {archivo}.")
