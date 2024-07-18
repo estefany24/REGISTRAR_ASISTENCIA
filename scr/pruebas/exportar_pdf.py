@@ -155,3 +155,5 @@ def exportar_datos_mes_pdf(mes, anio):
 
 # Llamada de ejemplo a la función
 exportar_datos_mes_pdf(7, 2024)  # Ejemplo de llamada para julio de 2024
+
+
