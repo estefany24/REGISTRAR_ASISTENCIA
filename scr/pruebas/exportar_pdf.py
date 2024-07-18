@@ -1,11 +1,13 @@
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-import calendar
-import sqlite3
 import os
-import tkinter as tk
+import sqlite3
 from tkinter import filedialog
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+import calendar
+from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Carpeta del archivo actual
 DATA_DIR = os.path.join(BASE_DIR, '..', 'data')  # Carpeta 'data' relativa al archivo actual
@@ -22,17 +24,22 @@ def conectar_bd():
 
 def obtener_asistencias(cursor, persona_id, dias_validos):
     """Función para obtener las asistencias de una persona en días específicos."""
-    dias_formateados = ', '.join([str(dia) for dia in dias_validos])
+    dias_formateados = ', '.join([f"'{dia.strftime('%Y-%m-%d')}'" for dia in dias_validos])
     cursor.execute(f"""
         SELECT strftime('%d', fecha)
         FROM asistencia
-        WHERE lista_id = ? AND strftime('%d', fecha) IN ({dias_formateados})
+        WHERE lista_id = ? AND fecha IN ({dias_formateados})
     """, (persona_id,))
     asistencias = cursor.fetchall()
-    return [dia[0] for dia in asistencias]
+    return [int(dia[0]) for dia in asistencias]
 
-def exportar_datos_mes_pdf(mes, anio):
-    """Función principal para exportar el reporte de asistencia a PDF."""
+def dividir_lista(lista):
+    """Función para dividir una lista en dos partes aproximadamente iguales."""
+    mitad = len(lista) // 2
+    return lista[:mitad], lista[mitad:]
+
+def exportar_datos_mensual_pdf(mes, anio):
+    """Función principal para exportar el reporte de asistencia a PDF en un mes específico."""
     conn = conectar_bd()
     if conn is None:
         print("No se pudo conectar a la base de datos.")
@@ -53,22 +60,24 @@ def exportar_datos_mes_pdf(mes, anio):
     """)
     personas = cursor.fetchall()
 
-    # Obtener el nombre del mes
-    nombre_mes = calendar.month_name[mes]
+    # Generar el rango de fechas para el mes y año especificados
+    dias = [datetime(anio, mes, dia) for dia in range(1, calendar.monthrange(anio, mes)[1] + 1)]
+    dias_1, dias_2 = dividir_lista(dias)
 
     # Nombre del archivo PDF
+    nombre_mes = calendar.month_name[mes]
     archivo = filedialog.asksaveasfilename(defaultextension=".pdf",
-                                          filetypes=[("PDF Files", "*.pdf")],
-                                          title=f"Guardar reporte de asistencia de {nombre_mes} de {anio}",
-                                          initialfile=f"reporte_asistencia_{nombre_mes}_{anio}.pdf")
+                                           filetypes=[("PDF Files", "*.pdf")],
+                                           title="Guardar reporte de asistencia",
+                                           initialfile=f"reporte_asistencia_{nombre_mes}_{anio}.pdf")
 
     if not archivo:
         print("No se seleccionó ningún archivo.")
         conn.close()
         return
 
-    # Crear el documento PDF
-    doc = SimpleDocTemplate(archivo, pagesize=letter)
+    # Crear el documento PDF en orientación horizontal
+    doc = SimpleDocTemplate(archivo, pagesize=landscape(letter))
     contenido = []
 
     # Estilos para el contenido del PDF
@@ -81,70 +90,44 @@ def exportar_datos_mes_pdf(mes, anio):
         parent=styles['Title']
     )
 
-    # Obtener las semanas del mes y año especificados
-    semanas_del_mes = calendar.monthcalendar(anio, mes)
+    contenido.append(Paragraph(f"Reporte de Asistencia de {nombre_mes} de {anio}", style=titulo_style))
 
-    # Estructura para almacenar las asistencias de cada persona por semana
-    asistencias_persona = {}
-    for persona in personas:
-        persona_id = persona[0]
-        apellido_pat = persona[1]
-        apellido_mat = persona[2]
-        nombres = persona[3]
-        dni = persona[4]
-
-        # Inicializar las asistencias para la persona
-        asistencias_persona[(apellido_pat, apellido_mat, nombres, dni)] = {str(week + 1): '' for week in range(len(semanas_del_mes))}
-
-        # Obtener asistencias para cada semana
-        for week, dias_validos in enumerate(semanas_del_mes):
-            # Filtrar días válidos (diferentes de 0)
-            dias_validos = [dia for dia in dias_validos if dia != 0]
-            # Obtener asistencias para la persona en los días válidos de la semana
-            asistencias = obtener_asistencias(cursor, persona_id, dias_validos)
-            # Marcar asistencias en la estructura de datos
-            asistencias_persona[(apellido_pat, apellido_mat, nombres, dni)][str(week + 1)] = ' '.join(asistencias)
-
-    # Construir el contenido del PDF
-    for semana in range(1, len(semanas_del_mes) + 1):
-        semana_actual = str(semana)
-        contenido.append(Paragraph(f"Semana {semana_actual} de {nombre_mes} de {anio}", titulo_style))
-
-        # Cabecera de la tabla
-        encabezados = ["Apellidos", "Nombres", "DNI", "L", "M", "M", "J", "V", "S", "D"]
+    def crear_tabla(personas, dias):
+        encabezados = ['Apellido Pat', 'Apellido Mat', 'Nombres', 'DNI'] + [dia.strftime('%d') for dia in dias]
         datos_tabla = [encabezados]
 
-        # Llenar datos de la tabla
-        for persona, asistencias_semana in asistencias_persona.items():
-            apellido_pat, apellido_mat, nombres, dni = persona
-            asistencias = asistencias_semana[semana_actual].split() if semana_actual in asistencias_semana else []
+        for persona in personas:
+            persona_id = persona[0]
+            apellido_pat = persona[1]
+            apellido_mat = persona[2]
+            nombres = persona[3]
+            dni = persona[4]
 
-            # Marcar asistencias con ✔
-            asistencias_formateadas = ['✔' if str(dia) in asistencias else '' for dia in ['L', 'M', 'M', 'J', 'V', 'S', 'D']]
-            fila = [f"{apellido_pat} {apellido_mat}", nombres, dni] + asistencias_formateadas
-            datos_tabla.append(fila)
+            asistencias = obtener_asistencias(cursor, persona_id, dias)
+            asistencia_formateada = ['✓' if dia.day in asistencias else ' ' for dia in dias]
+            datos_tabla.append([apellido_pat, apellido_mat, nombres, dni] + asistencia_formateada)
 
-        # Crear y estilizar la tabla
-        tabla = Table(datos_tabla)
+        # Ajustar los anchos de las columnas
+        tabla = Table(datos_tabla, colWidths=[2.5 * cm, 2.5 * cm, 3 * cm, 2.5 * cm] + [0.75 * cm] * len(dias))
         tabla.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), '#4F81BD'),
-            ('TEXTCOLOR', (0, 0), (-1, 0), '#FFFFFF'),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#4F81BD")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
+            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), '#D0E0F0'),
-            ('GRID', (0, 0), (-1, -1), 1, '#B5B5B5'),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#D0E0F0")),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ]))
 
-        contenido.append(tabla)
-        contenido.append(PageBreak())  # Agregar salto de página entre semanas
+        return tabla
 
-    # Eliminar el último salto de página si existe
-    if contenido[-1] == PageBreak():
-        del contenido[-1]
+    # Crear y agregar las dos tablas al contenido del PDF
+    contenido.append(crear_tabla(personas, dias_1))
+    contenido.append(PageBreak())
+    contenido.append(crear_tabla(personas, dias_2))
 
     # Cerrar conexión a la base de datos
     conn.close()
@@ -153,7 +136,5 @@ def exportar_datos_mes_pdf(mes, anio):
     doc.build(contenido)
     print(f"Datos exportados a {archivo}.")
 
-# Llamada de ejemplo a la función
-exportar_datos_mes_pdf(7, 2024)  # Ejemplo de llamada para julio de 2024
-
-
+# Ejemplo de llamada a la función
+exportar_datos_mensual_pdf(7, 2024)  # Ejemplo para julio de 2024
