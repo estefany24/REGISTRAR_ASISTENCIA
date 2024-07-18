@@ -320,6 +320,7 @@ class MainWindow:
         self.tree.column('Hora Entrada', width=100, anchor=tk.CENTER)
         self.tree.column('fecha',width=100, anchor=tk.CENTER)
 
+        # Estilo de la tabla
         style = ttk.Style()
         style.configure('Treeview', background='#FFFFFF')
         style.configure('Treeview.Heading', background='#CCCCCC')
@@ -329,7 +330,7 @@ class MainWindow:
         scroll_y.pack(side='right', fill='y')
         self.tree.configure(yscrollcommand=scroll_y.set)
 
-        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.tree.pack(fill=tk.BOTH, expand=True)        
     def mostrar_datos_registro(self):
         resultados = asistencia.obtener_asistencia()
         for row in self.tree.get_children():
