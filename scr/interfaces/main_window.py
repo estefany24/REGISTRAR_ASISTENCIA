@@ -25,7 +25,14 @@ from reportlab.lib.pagesizes import letter,landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-
+import tkinter as tk
+from tkinter import messagebox, Toplevel
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+from datetime import datetime, timedelta
+import calendar
+from collections import Counter
 
 class MainWindow:
     def __init__(self, master):
@@ -99,7 +106,8 @@ class MainWindow:
         self.agregar_barra_seleccion_matris()
         self.crear_area_resultado_registro_MATRI()
         self.agregar_boton_descargar_pdf()
-
+        self.agregar_boton_graficoMEN()
+        #self.agregar_boton_exportarMEN
 
     def mostrar_reporte_semanal(self):
         self.limpiar_pantalla()
@@ -108,7 +116,43 @@ class MainWindow:
         self.crear_area_resultado_registro_SEMA()
         self.agregar_boton_exportar()
         self.agregar_boton_grafico()
+       # self.agregar_boton_graficoMEN
+    def agregar_boton_exportarMEN(self):
+        boton_exportar = tk.Button(self.master, text="Exportar Gráfico a PDF", command=self.exportar_grafico_mensual)
+        boton_exportar.pack()
 
+    def exportar_grafico_mensual(self):
+        try:
+            # Verificar que self.fig esté definido
+            if not hasattr(self, 'fig'):
+                messagebox.showerror("Error", "No hay gráfico disponible para exportar. Genere el gráfico primero.")
+                return
+
+            mes = int(self.mes_entry.get())
+            anio = int(self.anio_entry.get())
+
+            # Validar mes y año
+            if not mes or not anio:
+                messagebox.showerror("Error", "Debe seleccionar el mes y el año.")
+                return
+            if mes < 1 or mes > 12:
+                messagebox.showerror("Error", "El mes debe estar entre 1 y 12.")
+                return
+            if anio < 1900 or anio > 2100:
+                messagebox.showerror("Error", "El año debe estar entre 1900 y 2100.")
+                return
+
+            # Guardar el gráfico en un archivo PDF
+            archivo_pdf = f"grafico_asistencia_{anio}_{mes:02d}.pdf"
+            with PdfPages(archivo_pdf) as pdf:
+                pdf.savefig(self.fig)
+
+            messagebox.showinfo("Exportación exitosa", f"El gráfico se ha exportado correctamente a {archivo_pdf}")
+        
+        except Exception as e:
+            messagebox.showerror("Error", f"Se produjo un error al exportar el gráfico: {e}")
+
+# Ejemplo de uso:
 
     def entrada(self):
         logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'blogger.png')
@@ -549,6 +593,14 @@ class MainWindow:
                   activeforeground="#ffffff",  # Color del texto cuando se presiona
                   )
             boton_grafico.pack(side=tk.LEFT, padx=5)
+            boton_exporta = tk.Button(grafico_frame, text="exportar gráfico", command=self.exportar_grafico_mensual, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=15, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  )
+            boton_exporta.pack(side=tk.LEFT, padx=5)
 
     def mostrar_grafico_semanal(self):
         from collections import Counter
@@ -661,6 +713,9 @@ class MainWindow:
             canvas.draw()
             canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
             
+            # Guardar el gráfico en una variable de instancia para exportarlo después
+            self.fig = fig
+
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error: {e}")
 
