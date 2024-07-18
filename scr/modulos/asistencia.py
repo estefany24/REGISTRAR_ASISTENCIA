@@ -131,3 +131,31 @@ def agregar_asistencia_desde_excel(df):
         messagebox.showerror("Error", f"Error al agregar datos a la base de datos: {e}")
     finally:
         conn.close()
+
+
+
+def obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin):
+    """Función para obtener las asistencias dentro de un rango de fechas específico."""
+    conn = conectar_bd()
+    if conn is None:
+        print("No se pudo conectar a la base de datos.")
+        return []
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            p.ID,
+            p.apellido_pat,
+            p.apellido_mat,
+            p.nombres,
+            p.dni,
+            a.fecha
+        FROM lista_persona p
+        LEFT JOIN asistencia a ON p.ID = a.lista_id AND a.fecha BETWEEN ? AND ?
+        ORDER BY p.apellido_pat, p.apellido_mat, p.nombres
+    """, (fecha_inicio, fecha_fin))
+    asistencias = cursor.fetchall()
+
+    conn.close()
+    return asistencias

@@ -18,7 +18,7 @@ from collections import Counter
 import calendar
 from PIL import Image, ImageTk
 from calendar import monthrange,day_abbr
-from scr.modulos.asistencia import obtener_asistencia_por_fecha
+from scr.modulos.asistencia import obtener_asistencia_LISTA_matris
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter,landscape
@@ -847,7 +847,7 @@ class MainWindow:
         _, num_days = monthrange(anio, mes)
         fecha_fin = datetime(anio, mes, num_days).strftime('%Y-%m-%d')
 
-        asistencias= obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        asistencias= obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin)
         
         
 
