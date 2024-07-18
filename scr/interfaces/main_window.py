@@ -17,6 +17,9 @@ import pandas as pd
 from collections import Counter
 import calendar
 from PIL import Image, ImageTk
+from calendar import monthrange
+from scr.modulos.asistencia import obtener_asistencia_por_fecha
+
 
 class MainWindow:
     def __init__(self, master):
@@ -44,6 +47,7 @@ class MainWindow:
         # Menú Reporte Semanal
         autores_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
         autores_menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
+        autores_menu.add_command(label="lista mensual", command=self.mostrar_pordia_mes)
         menubar.add_cascade(label="Reporte mensual", menu=autores_menu)
 
         # Menú Cargar Datos
@@ -82,6 +86,13 @@ class MainWindow:
         self.crear_area_resultado_registro_SEMA()
         self.agregar_boton_exportarMEN()
         self.agregar_boton_graficoMEN()
+    
+    def mostrar_pordia_mes(self):
+        self.limpiar_pantalla()
+        self.entrada()
+        self.agregar_barra_seleccion_matris()
+        self.crear_area_resultado_registro_MATRI()
+
 
     def mostrar_reporte_semanal(self):
         self.limpiar_pantalla()
@@ -125,8 +136,14 @@ class MainWindow:
     def agregar_boton_exportar(self):
         exportar_frame = tk.Frame(self.master)
         exportar_frame.pack(pady=10)
-        boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf)
-        boton_exportar.pack()
+        boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=15, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  )
+        boton_exportar.pack(side=tk.LEFT, padx=5)
 
     def exportar_a_pdf(self):
         fecha_inicio = self.fecha_inicio_entry.get_date()
@@ -327,7 +344,13 @@ class MainWindow:
         #boton_actualizar = tk.Button(self.action_frame_rango, text="Actualizar", command=self.buscar_asistencia)
         #boton_actualizar.pack(side=tk.LEFT, padx=5)
 
-        boton_exportar_rango = tk.Button(self.action_frame_rango, text="Exportar Rango a PDF", command=self.exportar_datos_rango)
+        boton_exportar_rango = tk.Button(self.action_frame_rango, text="Exportar Rango a PDF", command=self.exportar_datos_rango, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=15, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  )
         boton_exportar_rango.pack(side=tk.LEFT, padx=5)
 
     def exportar_datos_rango(self):
@@ -346,13 +369,15 @@ class MainWindow:
     def agregar_barra_seleccion_fechas(self):
         fechas_frame = tk.Frame(self.master)
         fechas_frame.pack(pady=10)
+        fechas_frame.configure(bg="#282c34")
+        
 
-        tk.Label(fechas_frame, text="Fecha inicio:").pack(side=tk.LEFT, padx=5)
+        tk.Label(fechas_frame, text="Fecha inicio:",font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
         self.fecha_inicio_entry = DateEntry(fechas_frame, date_pattern='yyyy-mm-dd')
         self.fecha_inicio_entry.pack(side=tk.LEFT, padx=5)
         self.fecha_inicio_entry.bind("<<DateEntrySelected>>", self.actualizar_fecha_inicio_y_fin)
 
-        tk.Label(fechas_frame, text="Fecha fin:").pack(side=tk.LEFT, padx=5)
+        tk.Label(fechas_frame, text="Fecha fin:",font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
         self.fecha_fin_entry = DateEntry(fechas_frame, date_pattern='yyyy-mm-dd')
         self.fecha_fin_entry.pack(side=tk.LEFT, padx=5)
         self.fecha_fin_entry.config(state='readonly')
@@ -472,15 +497,26 @@ class MainWindow:
         self.tree.heading('Hora Entrada', text='Hora Entrada')
         self.tree.heading('Fecha',text='Fecha')
 
-        self.tree.pack(fill=tk.BOTH, expand=True)
+        #self.tree.pack(fill=tk.BOTH, expand=True)
 
         self.tree.column('ID', width=5, anchor=tk.CENTER)
-        self.tree.column('Nombres', width=100, anchor=tk.CENTER)
-        self.tree.column('Apellido Pat', width=100, anchor=tk.CENTER)
-        self.tree.column('Apellido Mat', width=100, anchor=tk.CENTER)
-        self.tree.column('DNI', width=100, anchor=tk.CENTER)
+        self.tree.column('Nombres', width=150)
+        self.tree.column('Apellido Pat', width=160)
+        self.tree.column('Apellido Mat', width=160)
+        self.tree.column('DNI', width=110, anchor=tk.CENTER)
         self.tree.column('Hora Entrada', width=100, anchor=tk.CENTER)
         self.tree.column('Fecha',width=180, anchor=tk.CENTER)
+
+        style = ttk.Style()
+        style.configure('Treeview', background='#FFFFFF')
+        style.configure('Treeview.Heading', background='#CCCCCC')
+
+        # Agregar barras de desplazamiento
+        scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
+        scroll_y.pack(side='right', fill='y')
+        self.tree.configure(yscrollcommand=scroll_y.set)
+
+        self.tree.pack(fill=tk.BOTH, expand=True)
 
 
     def agregar_boton_grafico(self):
@@ -686,3 +722,73 @@ class MainWindow:
         boton_agregar_pres.pack(side=tk.LEFT, padx=5)
 
         self.data = None
+
+
+
+# todo el generra una matriz(lista)
+    def agregar_barra_seleccion_matris(self):
+        mes_frame = tk.Frame(self.master)
+        mes_frame.pack(pady=10)
+        mes_frame.configure(bg="#282c34")
+
+        tk.Label(mes_frame, text="Seleccione el mes y el año:", font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
+
+        self.mes_entry = ttk.Combobox(mes_frame, values=list(range(1, 13)), state="readonly")
+        self.mes_entry.pack(side=tk.LEFT, padx=5)
+        self.mes_entry.current(datetime.now().month - 1)
+
+        self.anio_entry = ttk.Combobox(mes_frame, values=list(range(2000, datetime.now().year + 1)), state="readonly")
+        self.anio_entry.pack(side=tk.LEFT, padx=5)
+        self.anio_entry.current(datetime.now().year - 2000)
+
+        boton_generar_reporte = tk.Button(mes_frame, text="Generar reporte", command=self.mostrar_datos_mensualesMA, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                                          padx=15, pady=10,  borderwidth=0,  highlightthickness=0,  activebackground="#e53935",  activeforeground="#ffffff")
+        boton_generar_reporte.pack(side=tk.LEFT, padx=5)
+
+
+    def crear_area_resultado_registro_MATRI(self):
+        self.resultados_frame = tk.Frame(self.master)
+        self.resultados_frame.pack(pady=10)
+        dias =[f'{i+1}' for i in range(31)]
+        columnas = ['ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI'] + dias
+        self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=15)
+
+        for col in columnas:
+            self.tree.heading(col, text=col)
+            #self.tree.column(col, width=50, anchor=tk.CENTER)
+            self.tree.column(col, width=20,anchor=tk.CENTER)
+        self.tree.column('ID', width=5, anchor=tk.CENTER)
+        self.tree.column('Nombres', width=150)
+        self.tree.column('Apellido Pat', width=160)
+        self.tree.column('Apellido Mat', width=160)
+        self.tree.column('DNI', width=110, anchor=tk.CENTER)
+
+
+        style = ttk.Style()
+        style.configure('Treeview', background='#FFFFFF')
+        style.configure('Treeview.Heading', background='#CCCCCC')
+
+        scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
+        scroll_y.pack(side='right', fill='y')
+        self.tree.configure(yscrollcommand=scroll_y.set)
+
+        self.tree.pack(fill=tk.BOTH, expand=True)
+
+    def mostrar_datos_mensualesMA(self):
+        mes = int(self.mes_entry.get())
+        anio = int(self.anio_entry.get())
+
+        fecha_inicio = datetime(anio, mes, 1).strftime('%Y-%m-%d')
+        _, num_days = monthrange(anio, mes)
+        fecha_fin = datetime(anio, mes, num_days).strftime('%Y-%m-%d')
+
+        asistencias= obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+
+        # Limpiar datos anteriores
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        # Insertar nuevos datos
+        for asistencia in asistencias:
+            valores = list(asistencia[:5]) + ['P' if dia in [datetime.strptime(asistencia[6], '%Y-%m-%d').day for dia in range(1, num_days + 1)] else 'F' for dia in range(1, num_days + 1)]
+            self.tree.insert('', 'end', values=valores)
