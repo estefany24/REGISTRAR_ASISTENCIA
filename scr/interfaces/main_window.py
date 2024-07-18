@@ -847,6 +847,8 @@ class MainWindow:
         fecha_fin = datetime(anio, mes, num_days).strftime('%Y-%m-%d')
 
         asistencias= obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        
+        
 
         # Limpiar datos anteriores
         for row in self.tree.get_children():
@@ -854,7 +856,7 @@ class MainWindow:
 
         # Insertar nuevos datos
         for asistencia in asistencias:
-            valores = list(asistencia[:5]) + ['✓' if dia in [datetime.strptime(asistencia[6], '%Y-%m-%d').day for dia in range(1, num_days + 1)] else ' ' for dia in range(1, num_days + 1)]
+            valores = list(asistencia[:5]) + ['✓' if dia in [datetime.strptime(asistencia[6], '%Y-%m-%d').day for dia in range(1, num_days + 1)] else '' for dia in range(1, num_days + 1)]
             self.tree.insert('', 'end', values=valores)
 
     def agregar_boton_descargar_pdf(self):
@@ -892,7 +894,7 @@ class MainWindow:
             item = self.tree.item(child)["values"]
             apellido_pat = item[2]  # Índice 2 para Apellido Pat
             dni = item[4]  # Índice 4 para DNI
-            asistencia = ['✓' if dia in item[5:] else ' ' for dia in range(1, 31)]  # Índices 5 hasta el final para la asistencia
+            asistencia = item[5:5+30]  # Índices 5 a 34 para la asistencia
             datos_tabla.append([apellido_pat, dni] + asistencia)
 
         # Crear la tabla
