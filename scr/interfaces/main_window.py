@@ -254,30 +254,15 @@ class MainWindow:
 
         # Estilo de la tabla
         style = ttk.Style()
-        style.theme_use("default")  # Utiliza el tema por defecto
+        style.configure('Treeview', background='#FFFFFF')
+        style.configure('Treeview.Heading', background='#CCCCCC')
 
-        # Configurar estilo para la tabla y encabezados
-        style.configure("Treeview", background="#FFFFFF", foreground="black", rowheight=25,
-                        fieldbackground="#FFFFFF")
-        style.map('Treeview', background=[('selected', '#0078d7')])
-
-        style.configure("Treeview.Heading", background="#CCCCCC", foreground="black")
-
-        # Agregar la tabla al frame
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        # Barras de desplazamiento
+        # Agregar barras de desplazamiento
         scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
-        scroll_y.pack(side=tk.RIGHT, fill='y')
+        scroll_y.pack(side='right', fill='y')
         self.tree.configure(yscrollcommand=scroll_y.set)
 
-        scroll_x = ttk.Scrollbar(self.resultados_frame, orient='horizontal', command=self.tree.xview)
-        scroll_x.pack(side=tk.BOTTOM, fill='x')
-        self.tree.configure(xscrollcommand=scroll_x.set)
-
-
-
-        
+        self.tree.pack(fill=tk.BOTH, expand=True)        
     def mostrar_datos_registro(self):
         resultados = asistencia.obtener_asistencia()
         for row in self.tree.get_children():
