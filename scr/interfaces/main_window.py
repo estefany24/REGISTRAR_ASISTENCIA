@@ -252,16 +252,32 @@ class MainWindow:
         self.tree.column('Hora Entrada', width=100, anchor=tk.CENTER)
         self.tree.column('fecha',width=100, anchor=tk.CENTER)
 
+        # Estilo de la tabla
         style = ttk.Style()
-        style.configure('Treeview', background='#FFFFFF')
-        style.configure('Treeview.Heading', background='#CCCCCC')
+        style.theme_use("default")  # Utiliza el tema por defecto
 
-        # Agregar barras de desplazamiento
+        # Configurar estilo para la tabla y encabezados
+        style.configure("Treeview", background="#FFFFFF", foreground="black", rowheight=25,
+                        fieldbackground="#FFFFFF")
+        style.map('Treeview', background=[('selected', '#0078d7')])
+
+        style.configure("Treeview.Heading", background="#CCCCCC", foreground="black")
+
+        # Agregar la tabla al frame
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Barras de desplazamiento
         scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
-        scroll_y.pack(side='right', fill='y')
+        scroll_y.pack(side=tk.RIGHT, fill='y')
         self.tree.configure(yscrollcommand=scroll_y.set)
 
-        self.tree.pack(fill=tk.BOTH, expand=True)
+        scroll_x = ttk.Scrollbar(self.resultados_frame, orient='horizontal', command=self.tree.xview)
+        scroll_x.pack(side=tk.BOTTOM, fill='x')
+        self.tree.configure(xscrollcommand=scroll_x.set)
+
+
+
+        
     def mostrar_datos_registro(self):
         resultados = asistencia.obtener_asistencia()
         for row in self.tree.get_children():
