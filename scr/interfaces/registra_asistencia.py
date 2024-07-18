@@ -12,13 +12,12 @@ class RegistrarAsistencia:
     def __init__(self, master):
         self.master = master
         self.master.title("Registrar Asistencia")
-        self.master.geometry("400x400")
+        self.master.geometry("400x420")
         self.master.configure(bg="#282c34") 
         self.master.resizable(False, False)
         self.ventana_agregar_abierta = False
         self.iniciar()
         
-
     def iniciar(self):
         logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'humano.png')
         if not os.path.exists(logo_path):
@@ -34,7 +33,6 @@ class RegistrarAsistencia:
 
         # Título al lado del logo
         tk.Label(self.master, text="Asistencia", font=("Arial", 20, "bold"), bg="#282c34", fg="#61dafb").grid(row=1, column=0, columnspan=2, pady=10)
-
 
         # Etiqueta DNI
         tk.Label(self.master, text="DNI:", font=("Arial", 14, "bold"), bg="#282c34", fg="#ffffff").grid(row=2, column=0, padx=10, pady=10, sticky='e')
@@ -81,8 +79,6 @@ class RegistrarAsistencia:
 
     def change_button_color(self, button, color):
         button.config(bg=color)
-        
-
 
     def logout(self):
         self.master.destroy()
@@ -95,7 +91,7 @@ class RegistrarAsistencia:
         dni = self.entry_dni.get()
         id_persona = lista_personas.obtener_id_por_dni(dni)
 
-        if dni and len(dni)==8:
+        if dni and len(dni) == 8:
             if id_persona:
                 nombre = lista_personas.obtener_nombre_por_id(id_persona[0])
                 apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
@@ -105,26 +101,18 @@ class RegistrarAsistencia:
                         text=f"          Nombre: {nombre} {apellido_pat}",
                         anchor="center",
                         bg="#282c34",  # Fondo del marco
-                        fg="white",  # Color del texto
-                         
-                         # Centrar el texto
-                      # Borde sólido para la etiqueta
+                        fg="white"  # Color del texto
                     )
 
                     self.btn_registrar.config(state=tk.NORMAL)
-                    # Desvincular el evento '<Return>' para evitar que se llame a `registrar_asistencia` más de una vez
-                    self.master.unbind('<Return>')
-                    # Solo vincular el evento '<Return>' para llamar a `registrar_asistencia` una vez
-                    self.master.bind('<Return>', self.registrar_asistencia)
+                    # Registrar asistencia inmediatamente
+                    self.registrar_asistencia()
                 else:
                     self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat",
-                        anchor="center",
-                        bg="#282c34",  # Fondo del marco
-                        fg="white",  # Color del texto
-                         
-                         # Centrar el texto
-                      # Borde sólido para la etiqueta
-                    )
+                                             anchor="center",
+                                             bg="#282c34",  # Fondo del marco
+                                             fg="white"  # Color del texto
+                                             )
                     self.master.after(2000, self.limpiar_informacion)
 
             else:
@@ -135,40 +123,29 @@ class RegistrarAsistencia:
                     nombres = datos_dni.get('nombres')
                     dni_api = datos_dni.get('dni')
                     lista_personas.insertar_personas(nombres, apellido_paterno, apellido_materno, dni_api)
-                    print(f"Apellido Materno: {apellido_materno}")
-                    print(f"Apellido Paterno: {apellido_paterno}")
-                    print(f"Nombres: {nombres}")
-                    print(f"DNI: {dni_api}")
 
                     id_persona = lista_personas.obtener_id_por_dni(dni_api)
                     nombre = lista_personas.obtener_nombre_por_id(id_persona[0])
                     apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
 
                     if nombre and apellido_pat:
-                        self.info_usuario.config(text=f"          Nombre: {nombre} {apellido_pat}",
-                        anchor="center",
-                        bg="#282c34",  # Fondo del marco
-                        fg="white",  # Color del texto
-                         
-                         # Centrar el texto
-                      # Borde sólido para la etiqueta
+                        self.info_usuario.config(
+                            text=f"          Nombre: {nombre} {apellido_pat}",
+                            anchor="center",
+                            bg="#282c34",  # Fondo del marco
+                            fg="white"  # Color del texto
                         )
                         self.btn_registrar.config(state=tk.NORMAL)
-                        # Desvincular el evento '<Return>' para evitar que se llame a `registrar_asistencia` más de una vez
-                        self.master.unbind('<Return>')
-                        # Solo vincular el evento '<Return>' para llamar a `registrar_asistencia` una vez
-                        self.master.bind('<Return>', self.registrar_asistencia)
+                        # Registrar asistencia inmediatamente
+                        self.registrar_asistencia()
                     else:
                         self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat", bg="red")
                         self.master.after(2000, self.limpiar_informacion)
-
                 else:
                     if not self.ventana_agregar_abierta:  # Verifica que la ventana de agregar usuario no esté abierta
                         self.crear_ventana_agregar_usuario()
                     else:
                         self.info_usuario.config(text="Ya está abierta una ventana para agregar el usuario.", bg="red")
-
-      
         else:
             messagebox.showerror("Error", "Ingrese un DNI")
             self.master.after(2000, self.limpiar_informacion)
@@ -181,10 +158,15 @@ class RegistrarAsistencia:
             nombre = lista_personas.obtener_nombre_por_id(id_persona[0])
             apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
 
-            if nombre and apellido_pat:
-                #messagebox.showinfo("exito","asistencia registrada")
+            if nombre:
+                hora = datetime.now().strftime("%H:%M:%S")
+                self.info_usuario.config(
+                    text=f"                  Nombre: {nombre} {apellido_pat}\n                  Hora de entrada: {hora}",
+                    bg="#282c34",
+                    fg="white"
+                )
                 self.play_sound()
-                self.master.after(1000, self.limpiar_informacion)  # Tiempo reducido a 1 segundo (1000 ms)
+                self.master.after(2000, self.limpiar_informacion)  # Tiempo reducido a 2 segundos (2000 ms)
             else:
                 self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat", bg="red")
                 self.master.after(2000, self.limpiar_informacion)
@@ -192,14 +174,12 @@ class RegistrarAsistencia:
             self.info_usuario.config(text="No se pudo registrar la asistencia", bg="red")
             self.master.after(2000, self.limpiar_informacion)
 
-        # Desvincular el evento '<Return>' después de registrar la asistencia para evitar múltiples llamadas
-        self.master.unbind('<Return>')
-
     def limpiar_informacion(self):
         self.entry_dni.delete(0, tk.END)
-        self.info_usuario.config(text="", bg="white")
+        self.info_usuario.config(text="", bg="#282c34")
         self.btn_registrar.config(state=tk.DISABLED)
-        self.iniciar()
+        self.entry_dni.bind('<Return>', self.mostrar_informacion)
+        self.entry_dni.focus_set()
 
     def play_sound(self):
         winsound.Beep(1000, 200)  # Sonido simple
@@ -229,7 +209,6 @@ class RegistrarAsistencia:
 
         tk.Label(logo_frame, image=self.logo_photo, bg="#282c34").pack(side="left", padx=10)
         tk.Label(logo_frame, text="Agregando al Registro", font=("Arial", 16, "bold"), bg="#282c34", fg="#ffffff").pack(side="left")
-
 
         # Nombres
         tk.Label(self.agregar_personas, text="Nombres", font=label_font, bg="#282c34", fg="#ffffff").pack(pady=(20, 5))
@@ -288,15 +267,11 @@ class RegistrarAsistencia:
 
         self.agregar_personas.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-
     def on_closing(self):
         self.ventana_agregar_abierta = False
         self.agregar_personas.destroy()
-
-
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = RegistrarAsistencia(root)
     root.mainloop()
-

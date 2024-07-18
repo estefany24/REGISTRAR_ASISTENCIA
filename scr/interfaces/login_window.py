@@ -4,6 +4,7 @@ from scr.modulos import usuarios
 from tkinter import ttk, messagebox
 import os
 from PIL import Image, ImageTk
+import bcrypt
 
 class LoginWindow:
     def __init__(self, master):
@@ -39,6 +40,7 @@ class LoginWindow:
         ttk.Label(self.master, text="Contraseña:", background="#282c34", foreground="#ffffff").grid(row=3, column=0, padx=10, pady=10, sticky='e')
         self.entry_contrasena = ttk.Entry(self.master, show="*", font=("Arial", 14))
         self.entry_contrasena.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+        
         self.btn_iniciar_sesion = tk.Button(self.master, text="Iniciar Sesión", command=self.iniciar_sesion,
                                            bg="#4CAF50", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                                            padx=20, pady=10,  # Aumentar el tamaño del botón
@@ -64,11 +66,6 @@ class LoginWindow:
         self.btn_continuar_como_usuario.bind("<Leave>", lambda e: self.change_button_color(self.btn_continuar_como_usuario, "#61dafb"))
         self.btn_continuar_como_usuario.grid(row=5, column=0, columnspan=2, padx=10, pady=15)
 
-
-        self.btn_continuar_como_usuario.grid(row=5, column=0, columnspan=2, padx=10, pady=15)
-
-      
-
         self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
         # Centrar todo
         for i in range(6):
@@ -83,16 +80,30 @@ class LoginWindow:
         if messagebox.askokcancel("Salir", "¿Realmente desea cerrar la aplicación?"):
             self.master.destroy()
 
+    def verificar_contrasena(self, password: str, hashed_password: str) -> bool:
+        try:
+            return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+        except ValueError as e:
+            print(f"Error al verificar contraseña: {e}")
+            return False
+
     def iniciar_sesion(self):
         usuario = self.entry_usuario.get()
         contrasena = self.entry_contrasena.get()
-
+        
         try:
-            comparar_contraseña = usuarios.obtener_password_por_nombre(usuario)[0]
-        except IndexError:
+            # Obtener la contraseña encriptada de la base de datos
+            resultado = usuarios.obtener_password_por_nombre(usuario)
+            if resultado:
+                comparar_contraseña = resultado[0]
+            else:
+                comparar_contraseña = None
+        except Exception as e:
+            print(f"Error al obtener la contraseña: {e}")
             comparar_contraseña = None
 
-        if usuario and contrasena == comparar_contraseña:
+        # Verificar la contraseña usando bcrypt
+        if usuario and comparar_contraseña and self.verificar_contrasena(contrasena, comparar_contraseña):
             messagebox.showinfo("Éxito", "Inicio de sesión exitoso")
             self.master.destroy()
             self.abrir_ventana_admin()
@@ -125,4 +136,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = LoginWindow(root)
     root.mainloop()
-
