@@ -812,31 +812,38 @@ class MainWindow:
     def crear_area_resultado_registro_MATRI(self):
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
-        dias =[f'{i+1}' for i in range(31)]
+        
+        dias = [f'{i+1}' for i in range(31)]
         columnas = ['ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI'] + dias
+        
         self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=15)
 
         for col in columnas:
             self.tree.heading(col, text=col)
-            #self.tree.column(col, width=50, anchor=tk.CENTER)
-            self.tree.column(col, width=20,anchor=tk.CENTER)
-        self.tree.column('ID', width=5, anchor=tk.CENTER)
+            self.tree.column(col, width=20, anchor=tk.CENTER)
+        self.tree.column('ID', width=50, anchor=tk.CENTER)
         self.tree.column('Nombres', width=120)
         self.tree.column('Apellido Pat', width=130)
         self.tree.column('Apellido Mat', width=130)
         self.tree.column('DNI', width=100, anchor=tk.CENTER)
 
-
         style = ttk.Style()
         style.configure('Treeview', background='#FFFFFF')
         style.configure('Treeview.Heading', background='#CCCCCC')
 
+        # Crear barra de desplazamiento vertical
         scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
         scroll_y.pack(side='right', fill='y')
         self.tree.configure(yscrollcommand=scroll_y.set)
 
+        # Crear barra de desplazamiento horizontal
+        scroll_x = ttk.Scrollbar(self.resultados_frame, orient='horizontal', command=self.tree.xview)
+        scroll_x.pack(side='bottom', fill='x')
+        self.tree.configure(xscrollcommand=scroll_x.set)
+
         self.tree.pack(fill=tk.BOTH, expand=True)
 
+        
     def mostrar_datos_mensualesMA(self):
         mes = int(self.mes_entry.get())
         anio = int(self.anio_entry.get())
@@ -857,7 +864,7 @@ class MainWindow:
         for asistencia in asistencias:
             persona_info = asistencia[:5]
             fechas_asistencia = asistencia[5]
-            valores = list(persona_info) + ['✓' if dia in [datetime.strptime(fecha, '%Y-%m-%d').day for fecha in fechas_asistencia] else '' for dia in range(1, num_days + 1)]
+            valores = list(persona_info) + ['✓' if dia in [datetime.strptime(fecha, '%Y-%m-%d').day for fecha in fechas_asistencia] else '-' for dia in range(1, num_days + 1)]
             self.tree.insert('', 'end', values=valores)
             
     def agregar_boton_descargar_pdf(self):
