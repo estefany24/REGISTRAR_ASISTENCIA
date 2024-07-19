@@ -143,19 +143,46 @@ def obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin):
 
     cursor = conn.cursor()
 
+    # Obtener todas las personas de lista_persona ordenadas por apellido y nombre
     cursor.execute("""
         SELECT 
-            p.ID,
-            p.apellido_pat,
-            p.apellido_mat,
-            p.nombres,
-            p.dni,
-            a.fecha
-        FROM lista_persona p
-        LEFT JOIN asistencia a ON p.ID = a.lista_id AND a.fecha BETWEEN ? AND ?
-        ORDER BY p.apellido_pat, p.apellido_mat, p.nombres
+            ID,
+            apellido_pat,
+            apellido_mat,
+            nombres,
+            dni
+        FROM lista_persona
+        ORDER BY apellido_pat, apellido_mat, nombres
+    """)
+    personas = cursor.fetchall()
+
+    # Obtener asistencias dentro del rango de fechas
+    cursor.execute("""
+        SELECT 
+            lista_id, 
+            fecha 
+        FROM asistencia 
+        WHERE fecha BETWEEN ? AND ?
     """, (fecha_inicio, fecha_fin))
     asistencias = cursor.fetchall()
 
+    # Crear un diccionario para acceder a las asistencias por persona
+    asistencias_dict = {}
+    for asistencia in asistencias:
+        persona_id, fecha = asistencia
+        if persona_id not in asistencias_dict:
+            asistencias_dict[persona_id] = []
+        asistencias_dict[persona_id].append(fecha)
+
+    # Añadir la lista de asistencias al resultado final
+    resultado = []
+    for persona in personas:
+        persona_id = persona[0]
+        if persona_id in asistencias_dict:
+            fechas_asistencia = asistencias_dict[persona_id]
+        else:
+            fechas_asistencia = []
+        resultado.append(persona + (fechas_asistencia,))
+
     conn.close()
-    return asistencias
+    return resultado

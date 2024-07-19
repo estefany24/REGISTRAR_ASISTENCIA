@@ -788,7 +788,7 @@ class MainWindow:
 
 
 
-# todo el generra una matriz(lista)
+# todo el genera una matriz(lista)
     def agregar_barra_seleccion_matris(self):
         mes_frame = tk.Frame(self.master)
         mes_frame.pack(pady=10)
@@ -847,9 +847,7 @@ class MainWindow:
         _, num_days = monthrange(anio, mes)
         fecha_fin = datetime(anio, mes, num_days).strftime('%Y-%m-%d')
 
-        asistencias= obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin)
-        
-        
+        asistencias = obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin)
 
         # Limpiar datos anteriores
         for row in self.tree.get_children():
@@ -857,9 +855,11 @@ class MainWindow:
 
         # Insertar nuevos datos
         for asistencia in asistencias:
-            valores = list(asistencia[:5]) + ['✓' if dia in [datetime.strptime(asistencia[6], '%Y-%m-%d').day for dia in range(1, num_days + 1)] else '' for dia in range(1, num_days + 1)]
+            persona_info = asistencia[:5]
+            fechas_asistencia = asistencia[5]
+            valores = list(persona_info) + ['✓' if dia in [datetime.strptime(fecha, '%Y-%m-%d').day for fecha in fechas_asistencia] else '' for dia in range(1, num_days + 1)]
             self.tree.insert('', 'end', values=valores)
-
+            
     def agregar_boton_descargar_pdf(self):
         boton_frame = tk.Frame(self.master)
         boton_frame.pack(pady=10)
