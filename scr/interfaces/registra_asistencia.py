@@ -127,13 +127,12 @@ class RegistrarAsistencia:
                     id_persona = lista_personas.obtener_id_por_dni(dni_api)
                     nombre = lista_personas.obtener_nombre_por_id(id_persona[0])
                     apellido_pat = lista_personas.obtener_apellido_por_id(id_persona[0])
-
+                    hora = datetime.now().strftime("%H:%M:%S")
                     if nombre and apellido_pat:
                         self.info_usuario.config(
-                            text=f"          Nombre: {nombre} {apellido_pat}",
-                            anchor="center",
-                            bg="#282c34",  # Fondo del marco
-                            fg="white"  # Color del texto
+                            text=f"                  Nombre: {nombre} {apellido_pat}\n                  Hora de entrada: {hora}",
+                            bg="#282c34",
+                            fg="white"
                         )
                         self.btn_registrar.config(state=tk.NORMAL)
                         # Registrar asistencia inmediatamente
@@ -166,7 +165,7 @@ class RegistrarAsistencia:
                     fg="white"
                 )
                 self.play_sound()
-                self.master.after(2000, self.limpiar_informacion)  # Tiempo reducido a 2 segundos (2000 ms)
+                self.master.after(5000, self.limpiar_informacion)  # Tiempo reducido a 2 segundos (2000 ms)
             else:
                 self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat", bg="red")
                 self.master.after(2000, self.limpiar_informacion)

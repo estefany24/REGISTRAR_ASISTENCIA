@@ -33,15 +33,16 @@ from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime, timedelta
 import calendar
 from collections import Counter
+from scr.modulos import exportar_matrix_asistencia
 
 class MainWindow:
     def __init__(self, master):
         self.master = master
         self.master.title("Información de asistencia")
-        self.master.geometry("1200x600")
+        self.master.geometry("1200x800") 
         self.master.configure(bg="#282c34") 
         
-
+        
         # Crear la barra de menú
         #self.crear_menu_lateral()
         self.mostrar_reportes_por_dia()  # Muestra la vista por defecto al iniciar la aplicación
@@ -58,8 +59,8 @@ class MainWindow:
 
         # Opciones del menú principal con colores personalizados
         opciones_principales = [
-            ("Reportes", self.mostrar_reportes_por_dia, "#aa8f66", os.path.join(carpeta_iconos, "logo_dia.png")),
-            ("Reporte Semanal", self.mostrar_reporte_semanal, "#ed9b40", os.path.join(carpeta_iconos, "semana.png")),
+            ("Reportes", self.mostrar_reportes_por_dia, "#aa8f66", os.path.join(carpeta_iconos, "logo_dia.png"))
+            #("Reporte Semanal", self.mostrar_reporte_semanal, "#ed9b40", os.path.join(carpeta_iconos, "semana.png")),
         ]
 
         for (texto, comando, color, icono_path) in opciones_principales:
@@ -69,6 +70,22 @@ class MainWindow:
             boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=30, pady=10)
             boton.image = icono  # Necesario para que la imagen no sea recolectada por el garbage collector
             boton.pack(side="left", padx=2, pady=2)
+            
+
+        #Menu desplegable para reporte SEmanal 
+        icono_reporte_semanal_path = os.path.join(carpeta_iconos, "semana.png")
+        imagen = Image.open(icono_reporte_semanal_path)
+        imagen = imagen.resize((30, 30), Image.LANCZOS)
+        icono_reporte_semanal = ImageTk.PhotoImage(imagen)
+        boton_reporte_semanal = tk.Menubutton(self.frame_menu, text="Reporte Semanal", bg="#ed9b40", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_semanal, compound="left", padx=30, pady=10)
+        boton_reporte_semanal.image = icono_reporte_semanal
+        boton_reporte_semanal.menu = tk.Menu(boton_reporte_semanal, tearoff=0, bg="black", fg="white", font=('Helvetica', 12))
+
+        boton_reporte_semanal["menu"] = boton_reporte_semanal.menu
+        boton_reporte_semanal.menu.add_command(label="Lista Semanal", command=self.mostrar_reporte_semanal)
+        boton_reporte_semanal.menu.add_command(label="Reporte Semanal", command=self.mostrar_reporte_semanal_Con_hora)
+        boton_reporte_semanal.pack(side="left", padx=2, pady=2)
+
 
         # Menú desplegable para "Reporte Mensual" con íconos y colores personalizados
         icono_reporte_mensual_path = os.path.join(carpeta_iconos, "calendario.png")
@@ -80,8 +97,8 @@ class MainWindow:
         boton_reporte_mensual.menu = tk.Menu(boton_reporte_mensual, tearoff=0, bg="black", fg="white", font=('Helvetica', 12))
 
         boton_reporte_mensual["menu"] = boton_reporte_mensual.menu
-        boton_reporte_mensual.menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
         boton_reporte_mensual.menu.add_command(label="Lista mensual", command=self.mostrar_pordia_mes)
+        boton_reporte_mensual.menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
         boton_reporte_mensual.pack(side="left", padx=2, pady=2)
 
         # Opciones restantes del menú principal con colores personalizados
@@ -140,13 +157,27 @@ class MainWindow:
         self.entrada()
         self.agregar_barra_seleccion_fechas()
         self.crear_area_resultado_seman_MATRIX()
+        self.agregar_boton_exportar_lista()
+        self.agregar_boton_grafico()
+       # self.agregar_boton_graficoMEN
+
+    def mostrar_reporte_semanal_Con_hora(self):
+        self.limpiar_pantalla()
+        self.crear_menu_lateral()
+        self.entrada()
+        self.agregar_barra_seleccion_fechas_con_hora()
+        self.crear_area_resultado_registro_SEMA()
         self.agregar_boton_exportar()
         self.agregar_boton_grafico()
        # self.agregar_boton_graficoMEN
 
     def agregar_boton_exportarMEN(self):
-        boton_exportar = tk.Button(self.master, text="Exportar Gráfico a PDF", command=self.exportar_grafico_mensual)
-        boton_exportar.pack()
+        boton_exportar = tk.Frame(self.master)
+        boton_exportar.pack(pady=10)
+        boton_exportar.configure(bg="#282c34")
+        boton_exportaree = tk.Button(boton_exportar, text="Exportar Gráfico a PDF", command=self.exportar_grafico_mensual)
+        boton_exportaree.pack(side=tk.LEFT, padx=5)
+        #boton_exportar.configure(bg="#282c34")
 
     def exportar_grafico_mensual(self):
         try:
@@ -169,32 +200,47 @@ class MainWindow:
                 messagebox.showerror("Error", "El año debe estar entre 1900 y 2100.")
                 return
 
-            # Guardar el gráfico en un archivo PDF
-            archivo_pdf = f"grafico_asistencia_{anio}_{mes:02d}.pdf"
+            # Abrir cuadro de diálogo para guardar archivo
+            archivo_pdf = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF files", "*.pdf")],
+                title="Guardar gráfico como",
+                initialfile=f"grafico_asistencia_{anio}_{mes:02d}.pdf"
+            )
+
+            # Verificar si el usuario seleccionó un archivo
+            if not archivo_pdf:
+                return  # El usuario canceló el diálogo
+
+            # Guardar el gráfico en el archivo seleccionado
             with PdfPages(archivo_pdf) as pdf:
                 pdf.savefig(self.fig)
 
             messagebox.showinfo("Exportación exitosa", f"El gráfico se ha exportado correctamente a {archivo_pdf}")
-        
+
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error al exportar el gráfico: {e}")
+
     def exportar_grafico_semanal(self):
         try:
-            # Verificar que self.fig_semanal esté definido
+            # Verificar que self.fig esté definido
             if not hasattr(self, 'fig'):
                 messagebox.showerror("Error", "No hay gráfico semanal disponible para exportar. Genere el gráfico primero.")
                 return
 
-            fecha_inicio = self.fecha_inicio_entry.get()
-            fecha_fin = self.fecha_fin_entry.get()
+            # Abrir cuadro de diálogo para guardar archivo
+            archivo_pdf = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF files", "*.pdf")],
+                title="Guardar gráfico como",
+                initialfile=f"grafico_asistencia_semanal.pdf"
+            )
 
-            # Validar fechas
-            if not fecha_inicio or not fecha_fin:
-                messagebox.showerror("Error", "Debe seleccionar la fecha de inicio y fin.")
-                return
+            # Verificar si el usuario seleccionó un archivo
+            if not archivo_pdf:
+                return  # El usuario canceló el diálogo
 
-            # Guardar el gráfico en un archivo PDF
-            archivo_pdf = f"grafico_asistencia_semanal_{fecha_inicio}_a_{fecha_fin}.pdf"
+            # Guardar el gráfico en el archivo seleccionado
             with PdfPages(archivo_pdf) as pdf:
                 pdf.savefig(self.fig)
 
@@ -212,7 +258,7 @@ class MainWindow:
             return
 
         self.logo_img = Image.open(logo_path)
-        self.logo_img = self.logo_img.resize((90,90), Image.LANCZOS)
+        self.logo_img = self.logo_img.resize((50,50), Image.LANCZOS)
         self.logo = ImageTk.PhotoImage(self.logo_img)
 
         # Etiqueta con el logo
@@ -226,6 +272,7 @@ class MainWindow:
     def agregar_boton_exportarMEN(self):
         exportar_frame = tk.Frame(self.master)
         exportar_frame.pack(pady=10)
+        exportar_frame.configure(bg="#282c34")
         boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf_MESUAL, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                   padx=15, pady=10,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
@@ -235,9 +282,24 @@ class MainWindow:
                   )
         boton_exportar.pack(side=tk.LEFT, padx=5)
 
+    def agregar_boton_exportar_lista(self):
+        exportar_frame = tk.Frame(self.master)
+        exportar_frame.pack(pady=10)
+        exportar_frame.configure(bg="#282c34")
+        boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf_lista, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=15, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  )
+        boton_exportar.pack(side=tk.LEFT, padx=5)
+
+
     def agregar_boton_exportar(self):
         exportar_frame = tk.Frame(self.master)
         exportar_frame.pack(pady=10)
+        exportar_frame.configure(bg="#282c34")
         boton_exportar = tk.Button(exportar_frame, text="Exportar", command=self.exportar_a_pdf, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                   padx=15, pady=10,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
@@ -257,6 +319,18 @@ class MainWindow:
         
         # Llamar a la función de exportación con el rango de fechas
         exportar_pdf.exportar_datos_rango_pdf(fecha_inicio, fecha_fin)
+        messagebox.showinfo("Éxito", "Datos exportados a PDF exitosamente.")
+
+    def exportar_a_pdf_lista(self):
+        fecha_inicio = self.fecha_inicio_entry.get_date()
+        fecha_fin = self.fecha_fin_entry.get_date()
+
+        if fecha_inicio > fecha_fin:
+            messagebox.showerror("Error", "La fecha final debe ser mayor o igual a la fecha de inicio.")
+            return
+        
+        # Llamar a la función de exportación con el rango de fechas
+        exportar_matrix_asistencia.exportar_datos_semanal_pdf(fecha_inicio, fecha_fin)
         messagebox.showinfo("Éxito", "Datos exportados a PDF exitosamente.")
     
     def exportar_a_pdf_MESUAL(self):
@@ -298,7 +372,7 @@ class MainWindow:
         #boton_reportes = tk.Button(search_frame, text="Reporte de hoy", command=self.mostrar_reportes_hoy)
         #boton_reportes.pack(side=tk.LEFT, padx=5)
         tk.Button(search_frame, text="Reporte de hoy", command=self.mostrar_reportes_hoy, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
-                  padx=15, pady=10,  # Tamaño del botón
+                  padx=10, pady=8,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
                   highlightthickness=0,  # Eliminar el borde del foco
                   activebackground="#e53935",  # Color de fondo cuando se presiona
@@ -315,8 +389,8 @@ class MainWindow:
 
         #search_button = tk.Button(search_frame, text="Buscar asistencia", command=self.buscar_asistencia)
         #search_button.pack(side=tk.LEFT, padx=5)
-        tk.Button(search_frame, text="Buscar asisteb¿ncia", command=self.buscar_asistencia, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
-                  padx=15, pady=10,  # Tamaño del botón
+        tk.Button(search_frame, text="Buscar asistencia", command=self.buscar_asistencia, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=10, pady=8,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
                   highlightthickness=0,  # Eliminar el borde del foco
                   activebackground="#e53935",  # Color de fondo cuando se presiona
@@ -331,7 +405,7 @@ class MainWindow:
         #boton_inicio = tk.Button(search_frame, text="Actualizar", command=self.mostrar_reportes_por_dia)
         #boton_inicio.pack(side=tk.LEFT, padx=5)
         tk.Button(search_frame, text="Actualizar", command=self.mostrar_reportes_por_dia, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
-                  padx=15, pady=10,  # Tamaño del botón
+                  padx=10, pady=8,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
                   highlightthickness=0,  # Eliminar el borde del foco
                   activebackground="#e53935",  # Color de fondo cuando se presiona
@@ -340,7 +414,7 @@ class MainWindow:
 
         # Guardar el botón de exportar en una variable de instancia
         self.boton_fin = tk.Button(search_frame, text="Exportar", command=self.exportar_datos_hoy, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
-                  padx=15, pady=10,  # Tamaño del botón
+                  padx=10, pady=8,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
                   highlightthickness=0,  # Eliminar el borde del foco
                   activebackground="#e53935",  # Color de fondo cuando se presiona
@@ -353,36 +427,56 @@ class MainWindow:
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
 
-        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada','fecha'), show='headings', height=16)
+        # Crear Treeview
+        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada', 'fecha'), show='headings', height=12)
         self.tree.heading('ID', text='ID')
         self.tree.heading('Nombres', text='Nombres')
         self.tree.heading('Apellido Pat', text='Apell. Paterno')
         self.tree.heading('Apellido Mat', text='Apell. Materno')
         self.tree.heading('DNI', text='DNI')
         self.tree.heading('Hora Entrada', text='Hora Entrada')
-        self.tree.heading('fecha',text='fecha')
+        self.tree.heading('fecha', text='Fecha')
 
-        #self.tree.pack(fill=tk.BOTH, expand=True)
-
-        self.tree.column('ID', width=5, anchor=tk.CENTER)
+        self.tree.column('ID', width=50, anchor=tk.CENTER)
         self.tree.column('Nombres', width=150)
         self.tree.column('Apellido Pat', width=160)
         self.tree.column('Apellido Mat', width=160)
         self.tree.column('DNI', width=110, anchor=tk.CENTER)
-        self.tree.column('Hora Entrada', width=100, anchor=tk.CENTER)
-        self.tree.column('fecha',width=100, anchor=tk.CENTER)
+        self.tree.column('Hora Entrada', width=120, anchor=tk.CENTER)
+        self.tree.column('fecha', width=100, anchor=tk.CENTER)
 
-        # Estilo de la tabla
+
         style = ttk.Style()
-        style.configure('Treeview', background='#FFFFFF')
-        style.configure('Treeview.Heading', background='#CCCCCC')
-
-        # Agregar barras de desplazamiento
+        style.configure('Treeview',
+                        background='#F5F5F5',
+                        foreground='black',
+                        rowheight=30,
+                        fieldbackground='#F5F5F5')
+        style.configure('Treeview.Heading',
+                        background='#8ffa89',  # Fondo de las cabeceras
+                        foreground='black',
+                        font=('Arial', 10, 'bold'))
+        style.map('Treeview.Heading',
+                background=[('pressed', '#3bf5e9'), ('active', '#cabc36')])
+    
+        self.tree.tag_configure('col_id', background='#704214', foreground='white')
+        self.tree.tag_configure('col_nombres', background='#915e2f', foreground='white')
+        self.tree.tag_configure('col_apellido_pat', background='#cabc36', foreground='black')
+        self.tree.tag_configure('col_apellido_mat', background='#8ffa89', foreground='black')
+        self.tree.tag_configure('col_dni', background='#3bf5e9', foreground='black')
+        self.tree.tag_configure('col_hora_entrada', background='#704214', foreground='white')
+        self.tree.tag_configure('col_fecha', background='#915e2f', foreground='white')
+            # Agregar barras de desplazamiento
         scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
         scroll_y.pack(side='right', fill='y')
         self.tree.configure(yscrollcommand=scroll_y.set)
 
-        self.tree.pack(fill=tk.BOTH, expand=True)        
+        self.tree.pack(fill=tk.BOTH, expand=True)
+
+
+
+
+
     def mostrar_datos_registro(self):
         resultados = asistencia.obtener_asistencia()
         for row in self.tree.get_children():
@@ -447,9 +541,10 @@ class MainWindow:
 
         #boton_actualizar = tk.Button(self.action_frame_rango, text="Actualizar", command=self.buscar_asistencia)
         #boton_actualizar.pack(side=tk.LEFT, padx=5)
+        self.action_frame_rango.configure(bg="#282c34")
 
         boton_exportar_rango = tk.Button(self.action_frame_rango, text="Exportar Rango a PDF", command=self.exportar_datos_rango, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
-                  padx=15, pady=10,  # Tamaño del botón
+                  padx=10, pady=8,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
                   highlightthickness=0,  # Eliminar el borde del foco
                   activebackground="#e53935",  # Color de fondo cuando se presiona
@@ -487,6 +582,32 @@ class MainWindow:
         self.fecha_fin_entry.config(state='readonly')
 
         boton_generar_reporte = tk.Button(fechas_frame, text="Generar reporte", command=self.mostrar_datos_semanales, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=15, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  )
+        boton_generar_reporte.pack(side=tk.LEFT, padx=5)
+
+
+    def agregar_barra_seleccion_fechas_con_hora(self):
+        fechas_frame = tk.Frame(self.master)
+        fechas_frame.pack(pady=10)
+        fechas_frame.configure(bg="#282c34")
+        
+
+        tk.Label(fechas_frame, text="Fecha inicio:",font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
+        self.fecha_inicio_entry = DateEntry(fechas_frame, date_pattern='yyyy-mm-dd')
+        self.fecha_inicio_entry.pack(side=tk.LEFT, padx=5)
+        self.fecha_inicio_entry.bind("<<DateEntrySelected>>", self.actualizar_fecha_inicio_y_fin)
+
+        tk.Label(fechas_frame, text="Fecha fin:",font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
+        self.fecha_fin_entry = DateEntry(fechas_frame, date_pattern='yyyy-mm-dd')
+        self.fecha_fin_entry.pack(side=tk.LEFT, padx=5)
+        self.fecha_fin_entry.config(state='readonly')
+
+        boton_generar_reporte = tk.Button(fechas_frame, text="Generar reporte", command=self.mostrar_datos_semanales_con_hora, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                   padx=15, pady=10,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
                   highlightthickness=0,  # Eliminar el borde del foco
@@ -582,6 +703,17 @@ class MainWindow:
 
             self.tree.insert('', 'end', values=valores)
         
+    def mostrar_datos_semanales_con_hora(self):
+        fecha_inicio = self.fecha_inicio_entry.get()
+        fecha_fin = self.fecha_fin_entry.get()
+        if not fecha_inicio or not fecha_fin:
+            messagebox.showerror("Error", "Debe ingresar ambas fechas.")
+            return
+        resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        for resultado in resultados:
+            self.tree.insert('', tk.END, values=resultado)
 
         
 
@@ -625,7 +757,7 @@ class MainWindow:
         self.resultados_frame = tk.Frame(self.master)
         self.resultados_frame.pack(pady=10)
 
-        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada','Fecha'), show='headings', height=15)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=('ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI', 'Hora Entrada','Fecha'), show='headings', height=10)
         self.tree.heading('ID', text='ID')
         self.tree.heading('Nombres', text='Nombres')
         self.tree.heading('Apellido Pat', text='Apell. Paterno')
@@ -663,7 +795,7 @@ class MainWindow:
         dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
         columnas = ['ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI'] + dias
         
-        self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=15)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=10)
 
         for col in columnas:
             self.tree.heading(col, text=col)
@@ -697,6 +829,7 @@ class MainWindow:
     def agregar_boton_grafico(self):
             grafico_frame = tk.Frame(self.master)
             grafico_frame.pack(pady=10)
+            grafico_frame.configure(bg="#282c34")
             boton_grafico = tk.Button(grafico_frame, text="Ver gráfico", command=self.mostrar_grafico_semanal, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                   padx=15, pady=10,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
@@ -717,6 +850,7 @@ class MainWindow:
     def agregar_boton_graficoMEN(self):
             grafico_frame = tk.Frame(self.master)
             grafico_frame.pack(pady=10)
+            grafico_frame.configure(bg="#282c34")
             boton_grafico = tk.Button(grafico_frame, text="Ver gráfico", command=self.mostrar_grafico_mensual, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                   padx=15, pady=10,  # Tamaño del botón
                   borderwidth=0,  # Eliminar el borde del botón
@@ -776,6 +910,8 @@ class MainWindow:
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         # Guardar el gráfico en una variable de instancia para exportarlo después
         self.fig = fig
+        # Guardar el gráfico en un archivo
+
 
 
     def mostrar_grafico_mensual(self):
@@ -852,8 +988,6 @@ class MainWindow:
 
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error: {e}")
-
-
 
 
     # TRATANDO DE AGREGAR PROR EXCEL 
@@ -949,7 +1083,7 @@ class MainWindow:
         dias = [f'{i+1}' for i in range(31)]
         columnas = ['ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI'] + dias
         
-        self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=15)
+        self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=10)
 
         for col in columnas:
             self.tree.heading(col, text=col)
@@ -1003,6 +1137,7 @@ class MainWindow:
     def agregar_boton_descargar_pdf(self):
         boton_frame = tk.Frame(self.master)
         boton_frame.pack(pady=10)
+        boton_frame.configure(bg="#282c34")
 
         boton_descargar_pdf = tk.Button(boton_frame, text="Descargar en PDF", command=self.descargar_pdf, bg="#4caf50", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
                                         padx=15, pady=10, borderwidth=0, highlightthickness=0, activebackground="#43a047", activeforeground="#ffffff")
