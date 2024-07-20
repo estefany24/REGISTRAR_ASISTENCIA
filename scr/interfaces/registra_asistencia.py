@@ -165,7 +165,7 @@ class RegistrarAsistencia:
                     fg="white"
                 )
                 self.play_sound()
-                self.master.after(5000, self.limpiar_informacion)  # Tiempo reducido a 2 segundos (2000 ms)
+                self.master.after(3500, self.limpiar_informacion)  # Tiempo reducido a 2 segundos (2000 ms)
             else:
                 self.info_usuario.config(text="No se pudo obtener el nombre o apellido_pat", bg="red")
                 self.master.after(2000, self.limpiar_informacion)
