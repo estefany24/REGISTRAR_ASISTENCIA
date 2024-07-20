@@ -57,8 +57,8 @@ class MainWindow:
 
         # Opciones del menú principal con colores personalizados
         opciones_principales = [
-            ("Reportes", self.mostrar_reportes_por_dia, "red", os.path.join(carpeta_iconos, "logo_dia.png")),
-            ("Reporte Semanal", self.mostrar_reporte_semanal, "green", os.path.join(carpeta_iconos, "semana.png")),
+            ("Reportes", self.mostrar_reportes_por_dia, "midnight blue", os.path.join(carpeta_iconos, "logo_dia.png")),
+            ("Reporte Semanal", self.mostrar_reporte_semanal, "steel blue", os.path.join(carpeta_iconos, "semana.png")),
         ]
 
         for (texto, comando, color, icono_path) in opciones_principales:
@@ -74,7 +74,7 @@ class MainWindow:
         imagen = Image.open(icono_reporte_mensual_path)
         imagen = imagen.resize((20, 20), Image.LANCZOS)
         icono_reporte_mensual = ImageTk.PhotoImage(imagen)
-        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="blue", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_mensual, compound="left", padx=15, pady=10)
+        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="royal blue", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_mensual, compound="left", padx=15, pady=10)
         boton_reporte_mensual.image = icono_reporte_mensual
         boton_reporte_mensual.menu = tk.Menu(boton_reporte_mensual, tearoff=0, bg="black", fg="white", font=('Helvetica', 12))
 
@@ -85,8 +85,8 @@ class MainWindow:
 
         # Opciones restantes del menú principal con colores personalizados
         opciones_restantes = [
-            ("Cargar Datos (Excel)", self.crear_barra_añadir_excel_asistencia, "purple", os.path.join(carpeta_iconos, "excel.png")),
-            ("Cerrar Sesión", self.logout, "orange", os.path.join(carpeta_iconos, "salir.png"))
+            ("Cargar Datos (Excel)", self.crear_barra_añadir_excel_asistencia, "teal", os.path.join(carpeta_iconos, "excel.png")),
+            ("Cerrar Sesión", self.logout, "cadet blue", os.path.join(carpeta_iconos, "salir.png"))
         ]
 
         for (texto, comando, color, icono_path) in opciones_restantes:
