@@ -49,11 +49,11 @@ class MainWindow:
 
     def crear_menu_lateral(self):
 
-        self.frame_menu = tk.Frame(self.master, bg="black", width=200)
-        self.frame_menu.pack(side="left", fill="y")
+        self.frame_menu = tk.Frame(self.master, bg="black", height=50)
+        self.frame_menu.pack(side="top", fill="x")
 
         # Carpeta de iconos
-        carpeta_iconos = os.path.join(os.path.dirname(__file__), '..','pictures')
+        carpeta_iconos = os.path.join(os.path.dirname(__file__), '..', 'pictures')
 
         # Opciones del menú principal con colores personalizados
         opciones_principales = [
@@ -65,23 +65,23 @@ class MainWindow:
             imagen = Image.open(icono_path)
             imagen = imagen.resize((20, 20), Image.LANCZOS)
             icono = ImageTk.PhotoImage(imagen)
-            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=15, pady=40)
+            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=15, pady=10)
             boton.image = icono  # Necesario para que la imagen no sea recolectada por el garbage collector
-            boton.pack(fill="x", padx=2, pady=2)
+            boton.pack(side="left", padx=2, pady=2)
 
         # Menú desplegable para "Reporte Mensual" con íconos y colores personalizados
         icono_reporte_mensual_path = os.path.join(carpeta_iconos, "calendario.png")
         imagen = Image.open(icono_reporte_mensual_path)
         imagen = imagen.resize((20, 20), Image.LANCZOS)
         icono_reporte_mensual = ImageTk.PhotoImage(imagen)
-        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="blue", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_mensual, compound="left", padx=15, pady=40)
+        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="blue", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_mensual, compound="left", padx=15, pady=10)
         boton_reporte_mensual.image = icono_reporte_mensual
         boton_reporte_mensual.menu = tk.Menu(boton_reporte_mensual, tearoff=0, bg="black", fg="white", font=('Helvetica', 12))
 
         boton_reporte_mensual["menu"] = boton_reporte_mensual.menu
         boton_reporte_mensual.menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
         boton_reporte_mensual.menu.add_command(label="Lista mensual", command=self.mostrar_pordia_mes)
-        boton_reporte_mensual.pack(fill="x", padx=2, pady=2)
+        boton_reporte_mensual.pack(side="left", padx=2, pady=2)
 
         # Opciones restantes del menú principal con colores personalizados
         opciones_restantes = [
@@ -93,9 +93,9 @@ class MainWindow:
             imagen = Image.open(icono_path)
             imagen = imagen.resize((30, 30), Image.LANCZOS)
             icono = ImageTk.PhotoImage(imagen)
-            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=15, pady=40)
+            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=15, pady=10)
             boton.image = icono
-            boton.pack(fill="x", padx=2, pady=2)
+            boton.pack(side="left", padx=2, pady=2)
 
 
     def logout(self):
