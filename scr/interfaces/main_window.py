@@ -38,7 +38,7 @@ class MainWindow:
     def __init__(self, master):
         self.master = master
         self.master.title("Información de asistencia")
-        self.master.geometry("900x600")
+        self.master.geometry("1200x600")
         self.master.configure(bg="#282c34") 
 
         # Crear la barra de menú
@@ -49,7 +49,7 @@ class MainWindow:
 
     def crear_menu_lateral(self):
 
-        self.frame_menu = tk.Frame(self.master, bg="black", height=50)
+        self.frame_menu = tk.Frame(self.master, bg="#282c34", height=50)
         self.frame_menu.pack(side="top", fill="x")
 
         # Carpeta de iconos
@@ -57,24 +57,24 @@ class MainWindow:
 
         # Opciones del menú principal con colores personalizados
         opciones_principales = [
-            ("Reportes", self.mostrar_reportes_por_dia, "red", os.path.join(carpeta_iconos, "logo_dia.png")),
-            ("Reporte Semanal", self.mostrar_reporte_semanal, "green", os.path.join(carpeta_iconos, "semana.png")),
+            ("Reportes", self.mostrar_reportes_por_dia, "#aa8f66", os.path.join(carpeta_iconos, "logo_dia.png")),
+            ("Reporte Semanal", self.mostrar_reporte_semanal, "#ed9b40", os.path.join(carpeta_iconos, "semana.png")),
         ]
 
         for (texto, comando, color, icono_path) in opciones_principales:
             imagen = Image.open(icono_path)
-            imagen = imagen.resize((20, 20), Image.LANCZOS)
+            imagen = imagen.resize((30, 30), Image.LANCZOS)
             icono = ImageTk.PhotoImage(imagen)
-            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=15, pady=10)
+            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=30, pady=10)
             boton.image = icono  # Necesario para que la imagen no sea recolectada por el garbage collector
             boton.pack(side="left", padx=2, pady=2)
 
         # Menú desplegable para "Reporte Mensual" con íconos y colores personalizados
         icono_reporte_mensual_path = os.path.join(carpeta_iconos, "calendario.png")
         imagen = Image.open(icono_reporte_mensual_path)
-        imagen = imagen.resize((20, 20), Image.LANCZOS)
+        imagen = imagen.resize((30, 30), Image.LANCZOS)
         icono_reporte_mensual = ImageTk.PhotoImage(imagen)
-        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="blue", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_mensual, compound="left", padx=15, pady=10)
+        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="#be4b69", fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono_reporte_mensual, compound="left", padx=30, pady=10)
         boton_reporte_mensual.image = icono_reporte_mensual
         boton_reporte_mensual.menu = tk.Menu(boton_reporte_mensual, tearoff=0, bg="black", fg="white", font=('Helvetica', 12))
 
@@ -85,15 +85,15 @@ class MainWindow:
 
         # Opciones restantes del menú principal con colores personalizados
         opciones_restantes = [
-            ("Cargar Datos (Excel)", self.crear_barra_añadir_excel_asistencia, "purple", os.path.join(carpeta_iconos, "excel.png")),
-            ("Cerrar Sesión", self.logout, "orange", os.path.join(carpeta_iconos, "salir.png"))
+            ("Cargar Datos (Excel)", self.crear_barra_añadir_excel_asistencia, "#61c9a8", os.path.join(carpeta_iconos, "excel.png")),
+            ("Cerrar Sesión", self.logout, "#ba3b46", os.path.join(carpeta_iconos, "salir.png"))
         ]
 
         for (texto, comando, color, icono_path) in opciones_restantes:
             imagen = Image.open(icono_path)
             imagen = imagen.resize((30, 30), Image.LANCZOS)
             icono = ImageTk.PhotoImage(imagen)
-            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=15, pady=10)
+            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg=color, fg="white", font=('Helvetica', 12, 'bold'), anchor="w", image=icono, compound="left", padx=30, pady=10)
             boton.image = icono
             boton.pack(side="left", padx=2, pady=2)
 
@@ -186,7 +186,7 @@ class MainWindow:
             return
 
         self.logo_img = Image.open(logo_path)
-        self.logo_img = self.logo_img.resize((100,100), Image.LANCZOS)
+        self.logo_img = self.logo_img.resize((90,90), Image.LANCZOS)
         self.logo = ImageTk.PhotoImage(self.logo_img)
 
         # Etiqueta con el logo
