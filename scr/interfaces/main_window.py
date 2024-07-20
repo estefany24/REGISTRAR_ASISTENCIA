@@ -40,6 +40,7 @@ class MainWindow:
         self.master.title("Información de asistencia")
         self.master.geometry("1200x600")
         self.master.configure(bg="#282c34") 
+        
 
         # Crear la barra de menú
         #self.crear_menu_lateral()
@@ -138,10 +139,11 @@ class MainWindow:
         self.crear_menu_lateral()
         self.entrada()
         self.agregar_barra_seleccion_fechas()
-        self.crear_area_resultado_registro_SEMA()
+        self.crear_area_resultado_seman_MATRIX()
         self.agregar_boton_exportar()
         self.agregar_boton_grafico()
        # self.agregar_boton_graficoMEN
+
     def agregar_boton_exportarMEN(self):
         boton_exportar = tk.Button(self.master, text="Exportar Gráfico a PDF", command=self.exportar_grafico_mensual)
         boton_exportar.pack()
@@ -256,6 +258,7 @@ class MainWindow:
             messagebox.showinfo("Éxito", f"Datos del mes {mes}/{anio} exportados a PDF exitosamente.")
         except Exception as e:
             messagebox.showerror("Error", f"Error al exportar a PDF: {e}")
+
 
     def limpiar_pantalla(self):
         for widget in self.master.winfo_children():
@@ -510,20 +513,53 @@ class MainWindow:
 
         self.fecha_inicio_entry.set_date(fecha_inicio)
         self.fecha_fin_entry.set_date(fecha_fin)
-
-
-
+        
     def mostrar_datos_semanales(self):
         fecha_inicio = self.fecha_inicio_entry.get()
         fecha_fin = self.fecha_fin_entry.get()
+
+        # Verificar que ambas fechas estén ingresadas
         if not fecha_inicio or not fecha_fin:
             messagebox.showerror("Error", "Debe ingresar ambas fechas.")
             return
-        resultados = asistencia.obtener_asistencia_por_fecha(fecha_inicio, fecha_fin)
+
+        try:
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+        except ValueError:
+            messagebox.showerror("Error", "Las fechas deben estar en formato AAAA-MM-DD.")
+            return
+
+        # Verificar que la fecha de inicio sea menor o igual a la fecha de fin
+        if fecha_inicio_dt > fecha_fin_dt:
+            messagebox.showerror("Error", "La fecha de inicio debe ser menor o igual a la fecha de fin.")
+            return
+
+        # Obtener el número de días en el rango
+        num_days = (fecha_fin_dt - fecha_inicio_dt).days + 1
+
+        # Obtener asistencias
+        asistencias = obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin)
+
+        # Limpiar datos anteriores
         for row in self.tree.get_children():
             self.tree.delete(row)
-        for resultado in resultados:
-            self.tree.insert('', tk.END, values=resultado)
+
+        # Insertar nuevos datos
+        for asistencia in asistencias:
+            persona_info = asistencia[:5]
+            fechas_asistencia = asistencia[5]
+
+            # Crear una lista con las marcas de asistencia
+            valores = list(persona_info)
+            for dia in range(num_days):
+                fecha_dia = (fecha_inicio_dt + timedelta(days=dia)).strftime('%Y-%m-%d')
+                valores.append('✓' if fecha_dia in fechas_asistencia else '-')
+
+            self.tree.insert('', 'end', values=valores)
+        
+
+        
 
      
     def mostrar_datos_mensuales(self):
@@ -592,6 +628,44 @@ class MainWindow:
         scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
         scroll_y.pack(side='right', fill='y')
         self.tree.configure(yscrollcommand=scroll_y.set)
+
+        self.tree.pack(fill=tk.BOTH, expand=True)
+
+    def crear_area_resultado_seman_MATRIX(self):
+        self.resultados_frame = tk.Frame(self.master)
+        self.resultados_frame.pack(pady=10)
+        
+        # Nombres de los días de la semana
+        dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+        columnas = ['ID', 'Nombres', 'Apellido Pat', 'Apellido Mat', 'DNI'] + dias
+        
+        self.tree = ttk.Treeview(self.resultados_frame, columns=columnas, show='headings', height=15)
+
+        for col in columnas:
+            self.tree.heading(col, text=col)
+            if col in dias:
+                self.tree.column(col, width=70, anchor=tk.CENTER)
+            else:
+                self.tree.column(col, width=20, anchor=tk.CENTER)
+        self.tree.column('ID', width=50, anchor=tk.CENTER)
+        self.tree.column('Nombres', width=120)
+        self.tree.column('Apellido Pat', width=130)
+        self.tree.column('Apellido Mat', width=130)
+        self.tree.column('DNI', width=100, anchor=tk.CENTER)
+
+        style = ttk.Style()
+        style.configure('Treeview', background='#FFFFFF')
+        style.configure('Treeview.Heading', background='#CCCCCC')
+
+        # Crear barra de desplazamiento vertical
+        scroll_y = ttk.Scrollbar(self.resultados_frame, orient='vertical', command=self.tree.yview)
+        scroll_y.pack(side='right', fill='y')
+        self.tree.configure(yscrollcommand=scroll_y.set)
+
+        # Crear barra de desplazamiento horizontal
+        scroll_x = ttk.Scrollbar(self.resultados_frame, orient='horizontal', command=self.tree.xview)
+        scroll_x.pack(side='bottom', fill='x')
+        self.tree.configure(xscrollcommand=scroll_x.set)
 
         self.tree.pack(fill=tk.BOTH, expand=True)
 

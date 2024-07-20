@@ -186,3 +186,6 @@ def obtener_asistencia_LISTA_matris(fecha_inicio, fecha_fin):
 
     conn.close()
     return resultado
+
+
+
