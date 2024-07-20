@@ -47,8 +47,6 @@ class MainWindow:
         #self.crear_menu_lateral()
         self.mostrar_reportes_por_dia()  # Muestra la vista por defecto al iniciar la aplicación
         self.master.protocol("WM_DELETE_WINDOW", self.logout)
-        self.exit_button = tk.Button(self.master, text="Salir", command=self.salir_fullscreen)
-        self.exit_button.pack(pady=10)
 
 
     def crear_menu_lateral(self):
@@ -202,32 +200,47 @@ class MainWindow:
                 messagebox.showerror("Error", "El año debe estar entre 1900 y 2100.")
                 return
 
-            # Guardar el gráfico en un archivo PDF
-            archivo_pdf = f"grafico_asistencia_{anio}_{mes:02d}.pdf"
+            # Abrir cuadro de diálogo para guardar archivo
+            archivo_pdf = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF files", "*.pdf")],
+                title="Guardar gráfico como",
+                initialfile=f"grafico_asistencia_{anio}_{mes:02d}.pdf"
+            )
+
+            # Verificar si el usuario seleccionó un archivo
+            if not archivo_pdf:
+                return  # El usuario canceló el diálogo
+
+            # Guardar el gráfico en el archivo seleccionado
             with PdfPages(archivo_pdf) as pdf:
                 pdf.savefig(self.fig)
 
             messagebox.showinfo("Exportación exitosa", f"El gráfico se ha exportado correctamente a {archivo_pdf}")
-        
+
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error al exportar el gráfico: {e}")
+
     def exportar_grafico_semanal(self):
         try:
-            # Verificar que self.fig_semanal esté definido
+            # Verificar que self.fig esté definido
             if not hasattr(self, 'fig'):
                 messagebox.showerror("Error", "No hay gráfico semanal disponible para exportar. Genere el gráfico primero.")
                 return
 
-            fecha_inicio = self.fecha_inicio_entry.get()
-            fecha_fin = self.fecha_fin_entry.get()
+            # Abrir cuadro de diálogo para guardar archivo
+            archivo_pdf = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF files", "*.pdf")],
+                title="Guardar gráfico como",
+                initialfile=f"grafico_asistencia_semanal.pdf"
+            )
 
-            # Validar fechas
-            if not fecha_inicio or not fecha_fin:
-                messagebox.showerror("Error", "Debe seleccionar la fecha de inicio y fin.")
-                return
+            # Verificar si el usuario seleccionó un archivo
+            if not archivo_pdf:
+                return  # El usuario canceló el diálogo
 
-            # Guardar el gráfico en un archivo PDF
-            archivo_pdf = f"grafico_asistencia_semanal_{fecha_inicio}_a_{fecha_fin}.pdf"
+            # Guardar el gráfico en el archivo seleccionado
             with PdfPages(archivo_pdf) as pdf:
                 pdf.savefig(self.fig)
 
@@ -898,14 +911,6 @@ class MainWindow:
         # Guardar el gráfico en una variable de instancia para exportarlo después
         self.fig = fig
         # Guardar el gráfico en un archivo
-        archivo_guardar = filedialog.asksaveasfilename(
-            defaultextension=".png",
-            filetypes=[("Archivos de imagen", "*.png")],
-            title="Guardar gráfico como"
-        )
-        if archivo_guardar:
-            self.fig.savefig(archivo_guardar, bbox_inches='tight')
-            messagebox.showinfo("Éxito", "Gráfico guardado correctamente.")
 
 
 
@@ -981,19 +986,8 @@ class MainWindow:
             # Guardar el gráfico en una variable de instancia para exportarlo después
             self.fig = fig
 
-            archivo_guardar = filedialog.asksaveasfilename(
-                defaultextension=".png",
-                filetypes=[("Archivos de imagen", "*.png")],
-                title="Guardar gráfico como"
-            )
-            if archivo_guardar:
-                self.fig.savefig(archivo_guardar, bbox_inches='tight')
-                messagebox.showinfo("Éxito", "Gráfico guardado correctamente.")
-
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error: {e}")
-
-
 
 
     # TRATANDO DE AGREGAR PROR EXCEL 
