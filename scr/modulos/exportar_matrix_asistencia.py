@@ -36,6 +36,7 @@ def obtener_asistencias(cursor, persona_id, dias_validos):
     asistencias = cursor.fetchall()
     return [int(dia[0]) for dia in asistencias]
 
+
 def exportar_datos_mensual_pdf(mes, anio):
     """Función principal para exportar el reporte de asistencia a PDF en un mes específico."""
     conn = conectar_bd()
@@ -120,8 +121,7 @@ def exportar_datos_mensual_pdf(mes, anio):
     # Generar el documento PDF
     doc.build(contenido)
     print(f"Datos exportados a {archivo}.")
-
-
+    
 def exportar_datos_semanal_pdf(fecha_inicio, fecha_fin):
     """Función principal para exportar el reporte de asistencia a PDF en un rango de fechas."""
     conn = conectar_bd()
