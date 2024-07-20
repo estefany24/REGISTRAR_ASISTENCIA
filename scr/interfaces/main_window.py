@@ -897,6 +897,16 @@ class MainWindow:
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         # Guardar el gráfico en una variable de instancia para exportarlo después
         self.fig = fig
+        # Guardar el gráfico en un archivo
+        archivo_guardar = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[("Archivos de imagen", "*.png")],
+            title="Guardar gráfico como"
+        )
+        if archivo_guardar:
+            self.fig.savefig(archivo_guardar, bbox_inches='tight')
+            messagebox.showinfo("Éxito", "Gráfico guardado correctamente.")
+
 
 
     def mostrar_grafico_mensual(self):
@@ -970,6 +980,15 @@ class MainWindow:
             
             # Guardar el gráfico en una variable de instancia para exportarlo después
             self.fig = fig
+
+            archivo_guardar = filedialog.asksaveasfilename(
+                defaultextension=".png",
+                filetypes=[("Archivos de imagen", "*.png")],
+                title="Guardar gráfico como"
+            )
+            if archivo_guardar:
+                self.fig.savefig(archivo_guardar, bbox_inches='tight')
+                messagebox.showinfo("Éxito", "Gráfico guardado correctamente.")
 
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error: {e}")
