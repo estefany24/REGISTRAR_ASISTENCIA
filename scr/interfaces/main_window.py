@@ -42,40 +42,45 @@ class MainWindow:
         self.master.configure(bg="#282c34") 
 
         # Crear la barra de menú
-        self.crear_menu()
-
-    def crear_menu(self):
-        menubar = Menu(self.master)        
-      
-        # Menú Reportes
-        libros_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        libros_menu.add_command(label="Ver todo", command=self.mostrar_reportes_por_dia)
-        menubar.add_cascade(label="Reportes", menu=libros_menu)
-
-        # Menú Reporte Semanal
-        categorias_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        categorias_menu.add_command(label="Reporte semanal",command=self.mostrar_reporte_semanal)
-        menubar.add_cascade(label="Reporte Semanal", menu=categorias_menu)
-
-        # Menú Reporte Semanal
-        autores_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        autores_menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
-        autores_menu.add_command(label="lista mensual", command=self.mostrar_pordia_mes)
-        menubar.add_cascade(label="Reporte mensual", menu=autores_menu)
-
-        # Menú Cargar Datos
-        cerrar_sesion_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        cerrar_sesion_menu.add_command(label="Cargar datos(excel)",command=self.crear_barra_añadir_excel_asistencia)
-        menubar.add_cascade(label="Cargar Datos", menu=cerrar_sesion_menu)
-
-        # Menú Salir
-        cerrar_sesion_menu = Menu(menubar, tearoff=0, bg="black", fg="white", activebackground="white", activeforeground="black", font=('Helvetica', 9))
-        cerrar_sesion_menu.add_command(label="Cerrar sesión", command=self.logout)
-        menubar.add_cascade(label="Salir", menu=cerrar_sesion_menu)
-
-        self.master.config(menu=menubar)
-        self.mostrar_reportes_por_dia()
+        #self.crear_menu_lateral()
+        self.mostrar_reportes_por_dia()  # Muestra la vista por defecto al iniciar la aplicación
         self.master.protocol("WM_DELETE_WINDOW", self.logout)
+
+
+    def crear_menu_lateral(self):
+        # Crear frame para el menú lateral
+        self.frame_menu = tk.Frame(self.master, bg="black", width=200)
+        self.frame_menu.pack(side="left", fill="y")
+
+        # Opciones del menú principal
+        opciones_principales = [
+            ("Reportes", self.mostrar_reportes_por_dia),
+            ("Reporte Semanal", self.mostrar_reporte_semanal),
+        ]
+
+        for (texto, comando) in opciones_principales:
+            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg="black", fg="white", font=('Helvetica', 12), anchor="w")
+            boton.pack(fill="x")
+
+        # Menú desplegable para "Reporte Mensual"
+        boton_reporte_mensual = tk.Menubutton(self.frame_menu, text="Reporte Mensual", bg="black", fg="white", font=('Helvetica', 12), anchor="w")
+        boton_reporte_mensual.menu = tk.Menu(boton_reporte_mensual, tearoff=0, bg="black", fg="white", font=('Helvetica', 12))
+        boton_reporte_mensual["menu"] = boton_reporte_mensual.menu
+
+        boton_reporte_mensual.menu.add_command(label="Reporte mensual", command=self.mostrar_reporte_mensual)
+        boton_reporte_mensual.menu.add_command(label="Lista mensual", command=self.mostrar_pordia_mes)
+        boton_reporte_mensual.pack(fill="x")
+
+        # Opciones restantes del menú principal
+        opciones_restantes = [
+            ("Cargar Datos (Excel)", self.crear_barra_añadir_excel_asistencia),
+            ("Cerrar Sesión", self.logout)
+        ]
+
+        for (texto, comando) in opciones_restantes:
+            boton = tk.Button(self.frame_menu, text=texto, command=comando, bg="black", fg="white", font=('Helvetica', 12), anchor="w")
+            boton.pack(fill="x")
+
 
     def logout(self):
         self.master.destroy()
@@ -86,6 +91,7 @@ class MainWindow:
 
     def mostrar_reportes_por_dia(self):
         self.limpiar_pantalla()
+        self.crear_menu_lateral()
         self.entrada()
         self.agregar_barra_reportes()
         self.crear_area_resultado_registro()
@@ -94,6 +100,7 @@ class MainWindow:
 
     def mostrar_reporte_mensual(self):
         self.limpiar_pantalla()
+        self.crear_menu_lateral()
         self.entrada()
         self.agregar_barra_seleccion_mes()
         self.crear_area_resultado_registro_SEMA()
@@ -102,6 +109,7 @@ class MainWindow:
     
     def mostrar_pordia_mes(self):
         self.limpiar_pantalla()
+        self.crear_menu_lateral()
         self.entrada()
         self.agregar_barra_seleccion_matris()
         self.crear_area_resultado_registro_MATRI()
@@ -111,6 +119,7 @@ class MainWindow:
 
     def mostrar_reporte_semanal(self):
         self.limpiar_pantalla()
+        self.crear_menu_lateral()
         self.entrada()
         self.agregar_barra_seleccion_fechas()
         self.crear_area_resultado_registro_SEMA()
