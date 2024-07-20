@@ -178,6 +178,30 @@ class MainWindow:
         
         except Exception as e:
             messagebox.showerror("Error", f"Se produjo un error al exportar el gráfico: {e}")
+    def exportar_grafico_semanal(self):
+        try:
+            # Verificar que self.fig_semanal esté definido
+            if not hasattr(self, 'fig'):
+                messagebox.showerror("Error", "No hay gráfico semanal disponible para exportar. Genere el gráfico primero.")
+                return
+
+            fecha_inicio = self.fecha_inicio_entry.get()
+            fecha_fin = self.fecha_fin_entry.get()
+
+            # Validar fechas
+            if not fecha_inicio or not fecha_fin:
+                messagebox.showerror("Error", "Debe seleccionar la fecha de inicio y fin.")
+                return
+
+            # Guardar el gráfico en un archivo PDF
+            archivo_pdf = f"grafico_asistencia_semanal_{fecha_inicio}_a_{fecha_fin}.pdf"
+            with PdfPages(archivo_pdf) as pdf:
+                pdf.savefig(self.fig)
+
+            messagebox.showinfo("Exportación exitosa", f"El gráfico semanal se ha exportado correctamente a {archivo_pdf}")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Se produjo un error al exportar el gráfico: {e}")
 
 # Ejemplo de uso:
 
@@ -681,6 +705,14 @@ class MainWindow:
                   activeforeground="#ffffff",  # Color del texto cuando se presiona
                   )
             boton_grafico.pack(side=tk.LEFT, padx=5)
+            boton_exporta = tk.Button(grafico_frame, text="exportar gráfico", command=self.exportar_grafico_semanal, bg="#f44336", fg="#ffffff", font=("Arial", 12, "bold"), relief="flat",
+                  padx=15, pady=10,  # Tamaño del botón
+                  borderwidth=0,  # Eliminar el borde del botón
+                  highlightthickness=0,  # Eliminar el borde del foco
+                  activebackground="#e53935",  # Color de fondo cuando se presiona
+                  activeforeground="#ffffff",  # Color del texto cuando se presiona
+                  )
+            boton_exporta.pack(side=tk.LEFT, padx=5)
             
     def agregar_boton_graficoMEN(self):
             grafico_frame = tk.Frame(self.master)
@@ -742,6 +774,8 @@ class MainWindow:
         canvas = FigureCanvasTkAgg(fig, master=ventana_grafico)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        # Guardar el gráfico en una variable de instancia para exportarlo después
+        self.fig = fig
 
 
     def mostrar_grafico_mensual(self):
