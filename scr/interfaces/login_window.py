@@ -1,10 +1,14 @@
 import tkinter as tk
 from tkinter import messagebox
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from scr.modulos import usuarios
 from tkinter import ttk, messagebox
 import os
 from PIL import Image, ImageTk
 import bcrypt
+import sys
 
 class LoginWindow:
     def __init__(self, master):
@@ -12,17 +16,22 @@ class LoginWindow:
         self.master.title("Inicio de Sesión")
         self.master.geometry("400x450")
         self.master.configure(bg="#282c34")  # Fondo oscuro de la ventana
+        self.crear_menu_si()
 
+    def crear_menu_si(self):
         # Agregar espacio para el logo
-        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'pictures', 'Logo_UNAP.png')
+    
+        base_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scr', 'pictures','Logo_UNAP.png')
+
+        #logo_path = os.path.join(base_path, 'pictures', 'Logo_UNAP.png')
 
         # Verificar si el logo existe
-        if not os.path.exists(logo_path):
-            messagebox.showerror("Error", f"No se encontró el logo en {logo_path}")
+        if not os.path.exists(base_path):
+            messagebox.showerror("Error", f"No se encontró el logo en {base_path}")
             return
 
         # Redimensionar el logo
-        image = Image.open(logo_path)
+        image = Image.open(base_path)
         image = image.resize((120, 120), Image.LANCZOS)  # Ajusta el tamaño del logo
         self.logo = ImageTk.PhotoImage(image)
 
@@ -115,19 +124,19 @@ class LoginWindow:
         self.abrir_ventana_general()
 
     def abrir_ventana_general(self):
-        import sys
-        import os
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-        from interfaces.registra_asistencia import RegistrarAsistencia  # Asegúrate de importar la clase RegistrarAsistencia
+        #import sys
+        #import os
+        #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        from scr.interfaces.registra_asistencia import RegistrarAsistencia  # Asegúrate de importar la clase RegistrarAsistencia
         ventana_principal = tk.Tk()
         app = RegistrarAsistencia(ventana_principal)
         ventana_principal.mainloop()
 
     def abrir_ventana_admin(self):
-        import sys
-        import os
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-        from interfaces.main_window import MainWindow  # Asegúrate de importar la clase MainWindow
+        #import sys
+        #import os
+        #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        from scr.interfaces.main_window import MainWindow  # Asegúrate de importar la clase MainWindow
         ventana_principal = tk.Tk()
         app = MainWindow(ventana_principal)
         ventana_principal.mainloop()

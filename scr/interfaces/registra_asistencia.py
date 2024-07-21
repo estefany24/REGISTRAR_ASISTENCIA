@@ -1,10 +1,13 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 import tkinter as tk
 import winsound
 from scr.modulos import lista_personas
 from scr.modulos import asistencia
 from datetime import datetime
 from tkinter import messagebox, ttk
-from modelos import api_conculta
+from scr.modelos import api_conculta
 from PIL import Image, ImageTk
 import os
 
@@ -19,7 +22,7 @@ class RegistrarAsistencia:
         self.iniciar()
         
     def iniciar(self):
-        logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'humano.png')
+        logo_path = os.path.join(os.path.dirname(__file__), '..','..','scr', 'pictures', 'humano.png')
         if not os.path.exists(logo_path):
             messagebox.showerror("Error", f"No se encontró el logo en {logo_path}")
             return
@@ -269,8 +272,3 @@ class RegistrarAsistencia:
     def on_closing(self):
         self.ventana_agregar_abierta = False
         self.agregar_personas.destroy()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = RegistrarAsistencia(root)
-    root.mainloop()

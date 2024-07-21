@@ -55,7 +55,7 @@ class MainWindow:
         self.frame_menu.pack(side="top", fill="x")
 
         # Carpeta de iconos
-        carpeta_iconos = os.path.join(os.path.dirname(__file__), '..', 'pictures')
+        carpeta_iconos = os.path.join(os.path.dirname(__file__),'..', '..', 'scr', 'pictures')
 
         # Opciones del menú principal con colores personalizados
         opciones_principales = [
@@ -252,7 +252,7 @@ class MainWindow:
 # Ejemplo de uso:
 
     def entrada(self):
-        logo_path = os.path.join(os.path.dirname(__file__), '..', 'pictures', 'blogger.png')
+        logo_path = os.path.join(os.path.dirname(__file__), '..', '..', 'scr', 'pictures', 'blogger.png')
         if not os.path.exists(logo_path):
             messagebox.showerror("Error", f"No se encontró el logo en {logo_path}")
             return
@@ -379,11 +379,11 @@ class MainWindow:
                   activeforeground="#ffffff",  # Color del texto cuando se presiona
                   ).pack(side=tk.LEFT, padx=5)
 
-        tk.Label(search_frame, text="Fecha inicio:",font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
+        tk.Label(search_frame, text="Fecha inicio:", font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
         self.fecha_inicio_entry = DateEntry(search_frame, width=12, background='darkblue', foreground='white', borderwidth=2)
         self.fecha_inicio_entry.pack(side=tk.LEFT, padx=5)
 
-        tk.Label(search_frame, text="Fecha fin:",font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
+        tk.Label(search_frame, text="Fecha fin:", font=("Arial", 14, "bold"), bg="#282c34", fg="#61dafb").pack(side=tk.LEFT, padx=5)
         self.fecha_fin_entry = DateEntry(search_frame, width=12, background='darkblue', foreground='white', borderwidth=2)
         self.fecha_fin_entry.pack(side=tk.LEFT, padx=5)
 
